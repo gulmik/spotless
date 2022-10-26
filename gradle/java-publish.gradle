@@ -35,7 +35,6 @@ tasks.named('sourcesJar') {
 }
 
 apply plugin: 'maven-publish'
-apply plugin: 'signing'
 
 // Where it's possible to name parameters and methods clearly enough
 // that javadoc is not necessary, why make the code bigger?
@@ -55,7 +54,7 @@ def makeLink = { url, text -> "<a href=\"${url}\" style=\"text-transform: none;\
 def javadocInfo = '<h2>' + makeLink("https://github.com/${org}/${name}", "${group}:${project.ext.artifactId}:${version}") +
 		' by ' + makeLink('https://www.diffplug.com', 'DiffPlug') + '</h2>'
 
-String dotdotGradle = project.name.startsWith('eclipse-') ? '../../gradle' : '../gradle'
+String dotdotGradle = project.name.startsWith('eclipse-') || project.name.startsWith('oracle-sql') ? '../../gradle' : '../gradle'
 javadoc {
 	options.encoding = 'UTF-8'
 	// Where it's possible to name parameters and methods clearly enough
@@ -157,6 +156,7 @@ model {
 }
 
 if (!version.endsWith('-SNAPSHOT')) {
+	apply plugin: 'signing'
 	signing {
 		String gpg_key = new String(System.env['ORG_GRADLE_PROJECT_gpg_key64'].decodeBase64())
 		useInMemoryPgpKeys(gpg_key, System.env['ORG_GRADLE_PROJECT_gpg_passphrase'])

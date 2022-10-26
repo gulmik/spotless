@@ -132,6 +132,27 @@ libs.each {
 	installLocalDependencies.dependsOn installDependency
 }
 
+if (project.getProperties().get('com.diffplug.spotless.include.ext.oracle-sql') == 'true') {
+	def groupId = 'oracle.dbtools'
+	def artifactId = 'dbtools-common'
+	def version = '22.3.0.270.1254'
+	def file = file("_ext/oracle-sql/build/ext/dbtools-common.jar")
+
+	def installDependency = task "install_${artifactId}"(type: Exec) {
+		workingDir MAVEN_PROJECT_DIR
+
+		inputs.file(file)
+		outputs.dir(LOCAL_MAVEN_REPO_DIR.file(groupId.replace('.', '/') + "/" + artifactId + "/" + version))
+		commandLine mvnw("org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file " +
+			"-Dfile=${file} " +
+			"-DgroupId=${groupId} " +
+			"-DartifactId=${artifactId} " +
+			"-Dversion=${libVersion} " +
+			"-Dpackaging=jar " +
+			"-DlocalRepositoryPath=${LOCAL_MAVEN_REPO_DIR}")
+	}
+}
+
 task createPomXml(dependsOn: installLocalDependencies) {
 	def newPomXml = MAVEN_PROJECT_DIR.file("pom.xml").asFile.toPath()
 

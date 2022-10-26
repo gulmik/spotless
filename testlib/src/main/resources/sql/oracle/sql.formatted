@@ -1,0 +1,35 @@
+CREATE TABLE tax (
+    empno NUMBER(5),
+    tax   NUMBER(10, 2)
+);
+
+INSERT INTO tax
+    SELECT
+        empno,
+        ( sal - 5000 ) * 0.40
+    FROM
+        emp
+    WHERE
+        sal > 5000;
+
+CREATE GLOBAL TEMPORARY TABLE taxable_emp (
+    empno NUMBER(5),
+    ename VARCHAR2(20),
+    sal   NUMBER(10, 2),
+    tax   NUMBER(10, 2)
+) ON COMMIT DELETE ROWS;
+
+ALTER TABLE emp ADD (
+    addr VARCHAR2(20),
+    city VARCHAR2(20),
+    pin  VARCHAR2(10),
+    ph   VARCHAR2(20)
+);
+
+SELECT
+    table1.id,
+    table2.number,
+    SUM(table1.amount)
+FROM
+         table1
+    INNER JOIN table2 ON table1.id = table2.table1_id;

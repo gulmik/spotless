@@ -1,0 +1,83 @@
+apply from: rootProject.file('_ext/gradle/update-lockfile.gradle')
+apply from: rootProject.file('_ext/gradle/java-setup.gradle')
+apply from: rootProject.file('gradle/java-publish.gradle')
+
+ext {
+	sha256Digest = 'AC4039AD7B0D67AA2AE1202D8040BEB11B0B3853DCC32A43AA700EA3912B1F75'
+	fileName = 'V1031391-01.zip'
+	outputDirName = 'build/tmp'
+	extDir = buildDir.toPath().resolve("ext").toFile()
+}
+
+///////////////////////////////////////
+// Download and unpack external deps //
+///////////////////////////////////////
+import java.nio.channels.Channels
+import java.nio.charset.StandardCharsets
+import java.security.DigestInputStream
+import java.security.MessageDigest
+
+task downloadArchive {
+	description = "Download SQLcl archive."
+	inputs.property('fileName', fileName)
+	inputs.property('outputDirName', outputDirName)
+	outputs.file("${outputDirName}/${fileName}")
+	doLast {
+		def token = new StringBuilder()
+				.append("ABCD!::")
+				.append("!fileId=115509345")
+				.append("&fileSetCid=1098512")
+				.append("&releaseCids=1094630")
+				.append("&downloadType=95761")
+				.append("&emailAddress=osdc_non_sso_user@oracle.com")
+				.append("&userName=EPD-OSDC_NON_SSO_USER@ORACLE.COM")
+				.append("&ipAddress=1.1.1.1")
+				.append("&userAgent=Java")
+				.append("&countryCode=US")
+				.append("&dlpCids=1098513")
+				.append("&applicationId=9")
+				.append("&ssoyn=N")
+				.append("&queryString=dlp_cid,1098513!rel_cid,1094630!auth,false")
+				.toString()
+		final def encodedToken = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8))
+		final def url = new StringBuilder("https://edelivery.oracle.com/ocom/softwareDownload?fileName=")
+				.append(fileName)
+				.append("&token=")
+				.append(encodedToken)
+				.append("&auth=false")
+				.toString()
+
+		final def sha256 = MessageDigest.getInstance("SHA-256")
+		def is = new DigestInputStream(URI.create(url).toURL().openStream(), sha256)
+		Channels.newChannel(is)
+				.withCloseable {inChannel ->
+					new FileOutputStream(project.file("${outputDirName}/${fileName}"))
+							.withCloseable {fos -> fos.getChannel().transferFrom(inChannel, 0, Long.MAX_VALUE)}
+				}
+
+		byte[] digestBytes = sha256.digest()
+		final def digestBuilder = new StringBuilder()
+		for (byte b : digestBytes) {
+			digestBuilder.append(String.format("%02x", b))
+		}
+		final def digestHex = digestBuilder.toString()
+		if(!sha256Digest.equalsIgnoreCase(digestHex)){
+			throw new IllegalStateException("Failed to verify checksum.")
+		}
+	}
+}
+
+task extractDbtoolsCommon(dependsOn: downloadArchive, type: Copy) {
+	description = "Extract dbtools-common from SQLcl archive."
+	outputs.file(extDir)
+	from {
+		zipTree(downloadArchive.outputs.files.singleFile).matching { include '**/dbtools-common.jar' }.singleFile
+	}
+	into extDir
+}
+
+tasks.compileJava.dependsOn(extractDbtoolsCommon)
+
+dependencies {
+	implementation files('build/ext/dbtools-common.jar')
+}

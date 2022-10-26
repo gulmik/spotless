@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2022 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,26 @@ class SqlTest extends MavenIntegrationHarness {
 	void testDbeaverWithAlternativeConfig() throws Exception {
 		writePomWithSqlSteps("<dbeaver><configFile>myConfig.properties</configFile></dbeaver>");
 		setFile("myConfig.properties").toResource("sql/dbeaver/sqlConfig2.properties");
+
+		setFile("src/main/resources/aFolder/create.sql").toResource("sql/dbeaver/create.dirty");
+		mavenRunner().withArguments("spotless:apply").runNoError();
+		assertFile("src/main/resources/aFolder/create.sql").sameAsResource("sql/dbeaver/create.clean.alternative");
+	}
+
+	@Test
+	void testOracleSqlWithDefaultConfig() throws Exception {
+		writePomWithSqlSteps("<oracleSql/>");
+
+		setFile("src/main/resources/aFolder/create.sql").toResource("sql/dbeaver/create.dirty");
+		mavenRunner().withArguments("spotless:apply", "-X").runNoError();
+		assertFile("src/main/resources/aFolder/create.sql").sameAsResource("sql/dbeaver/create.clean");
+	}
+
+	@Test
+	void testOracleSqlWithAlternativeConfig() throws Exception {
+		writePomWithSqlSteps("<oracleSql><settingsFile>settings.xml</settingsFile><arboriFile>local.arbori</arboriFile></oracleSql>");
+		setFile("settings.xml").toResource("sql/oracle/trivadis_advanced_format.xml");
+		setFile("local.arbori").toResource("sql/oracle/trivadis_custom_format.arbori");
 
 		setFile("src/main/resources/aFolder/create.sql").toResource("sql/dbeaver/create.dirty");
 		mavenRunner().withArguments("spotless:apply").runNoError();
