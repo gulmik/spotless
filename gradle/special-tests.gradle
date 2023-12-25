@@ -1,13 +1,13 @@
-apply plugin: 'org.gradle.test-retry'
 apply plugin: 'com.adarshr.test-logger'
 def special = [
 	'Npm',
 	'Black',
-	'Clang'
+	'Clang',
+	'Buf'
 ]
 
 boolean isCiServer = System.getenv().containsKey("CI")
-tasks.named('test') {
+tasks.withType(Test).configureEach {
 	// See com.diffplug.spotless.tag package for available JUnit 5 @Tag annotations
 	useJUnitPlatform {
 		excludeTags special as String[]
@@ -17,6 +17,12 @@ tasks.named('test') {
 			maxRetries = 2
 			maxFailures = 10
 		}
+
+		// There are only 2 cores in each GitHub Action Runner, we use all of them here.
+		maxParallelForks = Runtime.getRuntime().availableProcessors()
+	} else {
+		// https://docs.gradle.org/8.4/userguide/performance.html#execute_tests_in_parallel
+		maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 	}
 }
 

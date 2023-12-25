@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,16 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
+import com.diffplug.spotless.FileSignature;
 import com.diffplug.spotless.FormatterFunc;
 import com.diffplug.spotless.FormatterStep;
 import com.diffplug.spotless.JarState;
@@ -33,41 +39,28 @@ public class KtLintStep {
 	// prevent direct instantiation
 	private KtLintStep() {}
 
-	private static final String DEFAULT_VERSION = "0.47.1";
-	static final String NAME = "ktlint";
-	static final String PACKAGE_PRE_0_32 = "com.github.shyiko";
-	static final String PACKAGE = "com.pinterest";
-	static final String MAVEN_COORDINATE_PRE_0_32 = PACKAGE_PRE_0_32 + ":ktlint:";
-	static final String MAVEN_COORDINATE = PACKAGE + ":ktlint:";
+	private static final String DEFAULT_VERSION = "1.0.1";
+	private static final String NAME = "ktlint";
+	private static final String MAVEN_COORDINATE_0_DOT = "com.pinterest:ktlint:";
+	private static final String MAVEN_COORDINATE_1_DOT = "com.pinterest.ktlint:ktlint-cli:";
 
 	public static FormatterStep create(Provisioner provisioner) {
 		return create(defaultVersion(), provisioner);
 	}
 
 	public static FormatterStep create(String version, Provisioner provisioner) {
-		return create(version, provisioner, false, Collections.emptyMap(), Collections.emptyMap());
+		return create(version, provisioner, null, Collections.emptyMap(), Collections.emptyList());
 	}
 
-	public static FormatterStep create(String version, Provisioner provisioner, boolean useExperimental,
-			Map<String, String> userData, Map<String, Object> editorConfigOverride) {
-		return create(version, provisioner, false, useExperimental, userData, editorConfigOverride);
-	}
-
-	public static FormatterStep createForScript(String version, Provisioner provisioner) {
-		return create(version, provisioner, true, false, Collections.emptyMap(), Collections.emptyMap());
-	}
-
-	public static FormatterStep createForScript(String version, Provisioner provisioner, boolean useExperimental,
-			Map<String, String> userData, Map<String, Object> editorConfigOverride) {
-		return create(version, provisioner, true, useExperimental, userData, editorConfigOverride);
-	}
-
-	private static FormatterStep create(String version, Provisioner provisioner, boolean isScript, boolean useExperimental,
-			Map<String, String> userData, Map<String, Object> editorConfigOverride) {
+	public static FormatterStep create(String version,
+			Provisioner provisioner,
+			@Nullable FileSignature editorConfig,
+			Map<String, Object> editorConfigOverride,
+			List<String> customRuleSets) {
 		Objects.requireNonNull(version, "version");
 		Objects.requireNonNull(provisioner, "provisioner");
 		return FormatterStep.createLazy(NAME,
-				() -> new State(version, provisioner, isScript, useExperimental, userData, editorConfigOverride),
+				() -> new State(version, provisioner, editorConfig, editorConfigOverride, customRuleSets),
 				State::createFormat);
 	}
 
@@ -75,44 +68,35 @@ public class KtLintStep {
 		return DEFAULT_VERSION;
 	}
 
-	static final class State implements Serializable {
+	private static final class State implements Serializable {
 		private static final long serialVersionUID = 1L;
-
-		/** Are the files being linted Kotlin script files. */
-		private final boolean isScript;
 		/** The jar that contains the formatter. */
-		final JarState jarState;
-		private final boolean useExperimental;
-		private final TreeMap<String, String> userData;
+		private final JarState jarState;
 		private final TreeMap<String, Object> editorConfigOverride;
 		private final String version;
+		@Nullable
+		private final FileSignature editorConfigPath;
 
-		State(String version, Provisioner provisioner, boolean isScript, boolean useExperimental,
-				Map<String, String> userData, Map<String, Object> editorConfigOverride) throws IOException {
+		State(String version,
+				Provisioner provisioner,
+				@Nullable FileSignature editorConfigPath,
+				Map<String, Object> editorConfigOverride,
+				List<String> customRuleSets) throws IOException {
 			this.version = version;
-
-			String coordinate;
-			if (BadSemver.version(version) < BadSemver.version(0, 32)) {
-				coordinate = MAVEN_COORDINATE_PRE_0_32;
-			} else {
-				coordinate = MAVEN_COORDINATE;
-			}
-			if (BadSemver.version(version) < BadSemver.version(0, 31, 0)) {
-				throw new IllegalStateException("KtLint versions < 0.31.0 not supported!");
-			}
-			this.useExperimental = useExperimental;
-			this.userData = new TreeMap<>(userData);
 			this.editorConfigOverride = new TreeMap<>(editorConfigOverride);
-			this.jarState = JarState.from(coordinate + version, provisioner);
-			this.isScript = isScript;
+			String ktlintCoordinate = (version.startsWith("0.") ? MAVEN_COORDINATE_0_DOT : MAVEN_COORDINATE_1_DOT) + version;
+			Set<String> mavenCoordinates = new HashSet<>(customRuleSets);
+			mavenCoordinates.add(ktlintCoordinate);
+			this.jarState = JarState.from(mavenCoordinates, provisioner);
+			this.editorConfigPath = editorConfigPath;
 		}
 
 		FormatterFunc createFormat() throws Exception {
 			final ClassLoader classLoader = jarState.getClassLoader();
 			Class<?> formatterFunc = classLoader.loadClass("com.diffplug.spotless.glue.ktlint.KtlintFormatterFunc");
 			Constructor<?> constructor = formatterFunc.getConstructor(
-					String.class, boolean.class, boolean.class, Map.class, Map.class);
-			return (FormatterFunc.NeedsFile) constructor.newInstance(version, isScript, useExperimental, userData, editorConfigOverride);
+					String.class, FileSignature.class, Map.class);
+			return (FormatterFunc.NeedsFile) constructor.newInstance(version, editorConfigPath, editorConfigOverride);
 		}
 	}
 }

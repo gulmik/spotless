@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  */
 package com.diffplug.spotless.java;
 
-import static org.junit.jupiter.api.condition.JRE.JAVA_11;
 import static org.junit.jupiter.api.condition.JRE.JAVA_13;
 import static org.junit.jupiter.api.condition.JRE.JAVA_15;
+import static org.junit.jupiter.api.condition.JRE.JAVA_16;
+import static org.junit.jupiter.api.condition.JRE.JAVA_20;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 
-import com.diffplug.common.base.StringPrinter;
 import com.diffplug.spotless.FormatterStep;
 import com.diffplug.spotless.Jvm;
 import com.diffplug.spotless.ResourceHarness;
@@ -42,7 +41,7 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 	}
 
 	@Test
-	@EnabledForJreRange(min = JAVA_11, max = JAVA_15) // google-java-format requires JRE 11+
+	@EnabledForJreRange(max = JAVA_15) // google-java-format requires JRE 11+
 	void behavior18() throws Exception {
 		FormatterStep step = GoogleJavaFormatStep.create("1.8", TestProvisioner.mavenCentral());
 		StepHarness.forStep(step)
@@ -54,7 +53,7 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 
 	@Test
 	void behavior() throws Exception {
-		FormatterStep step = GoogleJavaFormatStep.create("1.2", TestProvisioner.mavenCentral());
+		FormatterStep step = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultVersion(), TestProvisioner.mavenCentral());
 		StepHarness.forStep(step)
 				.testResource("java/googlejavaformat/JavaCodeUnformatted.test", "java/googlejavaformat/JavaCodeFormatted.test")
 				.testResource("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test", "java/googlejavaformat/JavaCodeWithLicenseFormatted.test")
@@ -63,8 +62,25 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 	}
 
 	@Test
-	void behaviorWithAospStyle() throws Exception {
+	void versionBelowMinimumRequiredVersionIsNotAllowed() throws Exception {
 		FormatterStep step = GoogleJavaFormatStep.create("1.2", "AOSP", TestProvisioner.mavenCentral());
+		StepHarness.forStep(step)
+				.testResourceExceptionMsg("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test")
+				.contains("you are using 1.2");
+	}
+
+	@Test
+	@EnabledForJreRange(min = JAVA_16)
+	void versionBelowOneDotTenIsNotAllowed() throws Exception {
+		FormatterStep step = GoogleJavaFormatStep.create("1.9", "AOSP", TestProvisioner.mavenCentral());
+		StepHarness.forStep(step)
+				.testResourceExceptionMsg("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test")
+				.contains("you are using 1.9");
+	}
+
+	@Test
+	void behaviorWithAospStyle() throws Exception {
+		FormatterStep step = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultVersion(), "AOSP", TestProvisioner.mavenCentral());
 		StepHarness.forStep(step)
 				.testResource("java/googlejavaformat/JavaCodeUnformatted.test", "java/googlejavaformat/JavaCodeFormattedAOSP.test")
 				.testResource("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test", "java/googlejavaformat/JavaCodeWithLicenseFormattedAOSP.test")
@@ -85,8 +101,18 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 	}
 
 	@Test
+	void behaviorWithSkipFormatJavadoc() throws Exception {
+		try (StepHarness step = StepHarness.forStep(GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultGroupArtifact(), GoogleJavaFormatStep.defaultVersion(), GoogleJavaFormatStep.defaultStyle(), TestProvisioner.mavenCentral(), GoogleJavaFormatStep.defaultReflowLongStrings(), GoogleJavaFormatStep.defaultReorderImports(), false))) {
+			step.testResource("java/googlejavaformat/JavaCodeUnformatted.test", "java/googlejavaformat/JavaCodeFormattedSkipJavadocFormatting.test")
+					.testResource("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test", "java/googlejavaformat/JavaCodeWithLicenseFormatted.test")
+					.testResource("java/googlejavaformat/JavaCodeWithLicensePackageUnformatted.test", "java/googlejavaformat/JavaCodeWithLicensePackageFormatted.test")
+					.testResource("java/googlejavaformat/JavaCodeWithPackageUnformatted.test", "java/googlejavaformat/JavaCodeWithPackageFormatted.test");
+		}
+	}
+
+	@Test
 	void behaviorWithCustomGroupArtifact() throws Exception {
-		FormatterStep step = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultGroupArtifact(), "1.2", GoogleJavaFormatStep.defaultStyle(), TestProvisioner.mavenCentral(), false);
+		FormatterStep step = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultGroupArtifact(), GoogleJavaFormatStep.defaultVersion(), GoogleJavaFormatStep.defaultStyle(), TestProvisioner.mavenCentral(), false);
 		StepHarness.forStep(step)
 				.testResource("java/googlejavaformat/JavaCodeUnformatted.test", "java/googlejavaformat/JavaCodeFormatted.test")
 				.testResource("java/googlejavaformat/JavaCodeWithLicenseUnformatted.test", "java/googlejavaformat/JavaCodeWithLicenseFormatted.test")
@@ -95,9 +121,23 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 	}
 
 	@Test
+	void behaviorWithReorderImports() throws Exception {
+		FormatterStep enabled = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultGroupArtifact(), GoogleJavaFormatStep.defaultVersion(), "AOSP", TestProvisioner.mavenCentral(), GoogleJavaFormatStep.defaultReflowLongStrings(), true);
+		FormatterStep disabled = GoogleJavaFormatStep.create(GoogleJavaFormatStep.defaultGroupArtifact(), GoogleJavaFormatStep.defaultVersion(), "AOSP", TestProvisioner.mavenCentral(), GoogleJavaFormatStep.defaultReflowLongStrings(), false);
+		String unformatted = "java/googlejavaformat/JavaWithReorderImportsUnformatted.test";
+		try (StepHarness step = StepHarness.forStep(enabled)) {
+			step.testResource(unformatted, "java/googlejavaformat/JavaWithReorderImportsEnabledFormatted.test");
+		}
+		try (StepHarness step = StepHarness.forStep(disabled)) {
+			step.testResource(unformatted, "java/googlejavaformat/JavaWithReorderImportsDisabledFormatted.test");
+		}
+	}
+
+	@Test
+	@EnabledForJreRange(max = JAVA_20)
 	void equality() throws Exception {
 		new SerializableEqualityTester() {
-			String version = "1.2";
+			String version = "1.10.0";
 			String style = "";
 			boolean reflowLongStrings = false;
 
@@ -106,7 +146,7 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 				// same version == same
 				api.areDifferentThan();
 				// change the version, and it's different
-				version = "1.1";
+				version = "1.11.0";
 				api.areDifferentThan();
 				// change the style, and it's different
 				style = "AOSP";
@@ -125,7 +165,7 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 	}
 
 	@Test
-	@EnabledForJreRange(min = JAVA_11) // google-java-format requires JRE 11+
+	@EnabledForJreRange(max = JAVA_20)
 	void equalityGroupArtifact() throws Exception {
 		new SerializableEqualityTester() {
 			String groupArtifact = GoogleJavaFormatStep.defaultGroupArtifact();
@@ -149,42 +189,4 @@ class GoogleJavaFormatStepTest extends ResourceHarness {
 		}.testEquals();
 	}
 
-	@Test
-	void fixWindowsBugForGfj1Point1() {
-		fixWindowsBugTestcase("");
-		fixWindowsBugTestcase(
-				"",
-				"import somepackage;",
-				"");
-		fixWindowsBugTestcase(
-				"import somepackage;",
-				"",
-				"public class SomeClass {}");
-		fixWindowsBugTestcase(
-				"/** Some license */",
-				"import somepackage;",
-				"",
-				"public class SomeClass {}");
-		fixWindowsBugTestcase(
-				"package thispackage;",
-				"",
-				"import somepackage;",
-				"",
-				"public class SomeClass {}");
-		fixWindowsBugTestcase(
-				"/*",
-				" * A License.",
-				" */",
-				"",
-				"package thispackage;",
-				"",
-				"import somepackage;",
-				"",
-				"public class SomeClass {}");
-	}
-
-	private void fixWindowsBugTestcase(String... lines) {
-		String input = StringPrinter.buildStringFromLines(lines);
-		Assertions.assertEquals(input, GoogleJavaFormatStep.fixWindowsBug(input, "1.1"));
-	}
 }

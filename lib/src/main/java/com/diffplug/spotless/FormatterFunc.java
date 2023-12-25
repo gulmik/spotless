@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ public interface FormatterFunc {
 
 		/**
 		 * Dangerous way to create a {@link Closeable} from an AutoCloseable and a function.
-		 *
+		 * <p>
 		 * It's important for FormatterStep's to allocate their resources as lazily as possible.
 		 * It's easy to create a resource inside the state, and not realize that it may not be
 		 * released.  It's far better to use one of the non-deprecated {@code of()} methods below.
-		 *
+		 * <p>
 		 * The bug (and its fix) which is easy to write using this method: https://github.com/diffplug/spotless/commit/7f16ecca031810b5e6e6f647e1f10a6d2152d9f4
 		 * How the {@code of()} methods below make the correct thing easier to write and safer: https://github.com/diffplug/spotless/commit/18c10f9c93d6f18f753233d0b5f028d5f0961916
 		 */
@@ -127,7 +127,7 @@ public interface FormatterFunc {
 
 				@Override
 				public String apply(String unix) throws Exception {
-					return apply(unix, FormatterStepImpl.SENTINEL);
+					return apply(unix, Formatter.NO_FILE_SENTINEL);
 				}
 			};
 		}
@@ -156,7 +156,7 @@ public interface FormatterFunc {
 
 		@Override
 		default String apply(String unix) throws Exception {
-			return apply(unix, FormatterStepImpl.SENTINEL);
+			return apply(unix, Formatter.NO_FILE_SENTINEL);
 		}
 	}
 }

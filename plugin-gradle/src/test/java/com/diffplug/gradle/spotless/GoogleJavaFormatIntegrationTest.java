@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class GoogleJavaFormatIntegrationTest extends GradleIntegrationHarness {
 				"spotless {",
 				"    java {",
 				"        target file('test.java')",
-				"        googleJavaFormat('1.2')",
+				"        googleJavaFormat('1.17.0')",
 				"    }",
 				"}");
 
@@ -41,8 +41,60 @@ class GoogleJavaFormatIntegrationTest extends GradleIntegrationHarness {
 
 		checkRunsThenUpToDate();
 		replace("build.gradle",
-				"googleJavaFormat('1.2')",
-				"googleJavaFormat('1.3')");
+				"googleJavaFormat('1.17.0')",
+				"googleJavaFormat()");
+		checkRunsThenUpToDate();
+	}
+
+	@Test
+	void integrationWithReorderImports() throws IOException {
+		setFile("build.gradle").toLines(
+				"plugins {",
+				"    id 'com.diffplug.spotless'",
+				"}",
+				"repositories { mavenCentral() }",
+				"",
+				"spotless {",
+				"    java {",
+				"        target file('test.java')",
+				"        googleJavaFormat('1.17.0').aosp().reorderImports(true)",
+				"    }",
+				"}");
+
+		setFile("test.java").toResource("java/googlejavaformat/JavaWithReorderImportsUnformatted.test");
+		gradleRunner().withArguments("spotlessApply").build();
+		assertFile("test.java").sameAsResource("java/googlejavaformat/JavaWithReorderImportsEnabledFormatted.test");
+
+		checkRunsThenUpToDate();
+		replace("build.gradle",
+				"googleJavaFormat('1.17.0')",
+				"googleJavaFormat()");
+		checkRunsThenUpToDate();
+	}
+
+	@Test
+	void integrationWithSkipJavadocFormatting() throws IOException {
+		setFile("build.gradle").toLines(
+				"plugins {",
+				"    id 'com.diffplug.spotless'",
+				"}",
+				"repositories { mavenCentral() }",
+				"",
+				"spotless {",
+				"    java {",
+				"        target file('test.java')",
+				"        googleJavaFormat('1.17.0').skipJavadocFormatting()",
+				"    }",
+				"}");
+
+		setFile("test.java").toResource("java/googlejavaformat/JavaCodeUnformatted.test");
+		gradleRunner().withArguments("spotlessApply").build();
+		assertFile("test.java").sameAsResource("java/googlejavaformat/JavaCodeFormattedSkipJavadocFormatting.test");
+
+		checkRunsThenUpToDate();
+		replace("build.gradle",
+				"googleJavaFormat('1.17.0')",
+				"googleJavaFormat()");
 		checkRunsThenUpToDate();
 	}
 }

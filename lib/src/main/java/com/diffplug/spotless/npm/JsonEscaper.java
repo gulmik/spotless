@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,22 @@ final class JsonEscaper {
 		if (val instanceof String) {
 			return jsonEscape((String) val);
 		}
+		if (ListableAdapter.canAdapt(val)) {
+			// create an array
+			StringBuilder sb = new StringBuilder();
+			sb.append('[');
+			boolean first = true;
+			for (Object o : ListableAdapter.adapt(val)) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(", ");
+				}
+				sb.append(jsonEscape(o));
+			}
+			sb.append(']');
+			return sb.toString();
+		}
 		return val.toString();
 	}
 
@@ -44,7 +60,7 @@ final class JsonEscaper {
 	private static String jsonEscape(String unescaped) {
 		/**
 		 * the following characters are reserved in JSON and must be properly escaped to be used in strings:
-		 *
+		 * <p>
 		 * Backspace is replaced with \b
 		 * Form feed is replaced with \f
 		 * Newline is replaced with \n
@@ -52,7 +68,7 @@ final class JsonEscaper {
 		 * Tab is replaced with \t
 		 * Double quote is replaced with \"
 		 * Backslash is replaced with \\
-		 *
+		 * <p>
 		 * additionally we handle xhtml '</bla>' string
 		 * and non-ascii chars
 		 */

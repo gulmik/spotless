@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package com.diffplug.spotless.maven.java;
 
-import static org.junit.jupiter.api.condition.JRE.JAVA_11;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
 
 import com.diffplug.spotless.maven.MavenIntegrationHarness;
 
@@ -27,7 +24,7 @@ class GoogleJavaFormatTest extends MavenIntegrationHarness {
 	void specificVersionDefaultStyle() throws Exception {
 		writePomWithJavaSteps(
 				"<googleJavaFormat>",
-				"  <version>1.2</version>",
+				"  <version>1.17.0</version>",
 				"</googleJavaFormat>");
 
 		runTest("java/googlejavaformat/JavaCodeFormatted.test");
@@ -37,7 +34,7 @@ class GoogleJavaFormatTest extends MavenIntegrationHarness {
 	void specificVersionSpecificStyle() throws Exception {
 		writePomWithJavaSteps(
 				"<googleJavaFormat>",
-				"  <version>1.2</version>",
+				"  <version>1.17.0</version>",
 				"  <style>AOSP</style>",
 				"</googleJavaFormat>");
 
@@ -45,20 +42,46 @@ class GoogleJavaFormatTest extends MavenIntegrationHarness {
 	}
 
 	@Test
-	@EnabledForJreRange(min = JAVA_11)
 	void specificVersionReflowLongStrings() throws Exception {
 		writePomWithJavaSteps(
 				"<googleJavaFormat>",
-				"  <version>1.8</version>",
+				"  <version>1.17.0</version>",
 				"  <reflowLongStrings>true</reflowLongStrings>",
 				"</googleJavaFormat>");
 
 		runTest("java/googlejavaformat/JavaCodeFormattedReflowLongStrings.test");
 	}
 
+	@Test
+	void specificVersionReorderImports() throws Exception {
+		writePomWithJavaSteps(
+				"<googleJavaFormat>",
+				"  <version>1.17.0</version>",
+				"  <style>AOSP</style>",
+				"  <reorderImports>true</reorderImports>",
+				"</googleJavaFormat>");
+
+		runTest("java/googlejavaformat/JavaWithReorderImportsEnabledFormatted.test", "java/googlejavaformat/JavaWithReorderImportsUnformatted.test");
+	}
+
+	@Test
+	void specificVersionSkipJavadocFormatting() throws Exception {
+		writePomWithJavaSteps(
+				"<googleJavaFormat>",
+				"  <version>1.17.0</version>",
+				"  <formatJavadoc>false</formatJavadoc>",
+				"</googleJavaFormat>");
+
+		runTest("java/googlejavaformat/JavaCodeFormattedSkipJavadocFormatting.test");
+	}
+
 	private void runTest(String targetResource) throws Exception {
+		runTest(targetResource, "java/googlejavaformat/JavaCodeUnformatted.test");
+	}
+
+	private void runTest(String targetResource, String sourceResource) throws Exception {
 		String path = "src/main/java/test.java";
-		setFile(path).toResource("java/googlejavaformat/JavaCodeUnformatted.test");
+		setFile(path).toResource(sourceResource);
 		mavenRunner().withArguments("spotless:apply").runNoError();
 		assertFile(path).sameAsResource(targetResource);
 	}

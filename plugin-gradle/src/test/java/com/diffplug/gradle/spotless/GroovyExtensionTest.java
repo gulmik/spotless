@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,27 @@ class GroovyExtensionTest extends GradleIntegrationHarness {
 	}
 
 	@Test
+	void removeSemicolons() throws IOException {
+		setFile("build.gradle").toLines(
+				"plugins {",
+				"    id 'com.diffplug.spotless'",
+				"}",
+				"apply plugin: 'groovy'",
+				"",
+				"spotless {",
+				"    groovy {",
+				"        removeSemicolons()",
+				"    }",
+				"}");
+
+		String withSemicolons = getTestResource("groovy/removeSemicolons/GroovyCodeWithSemicolons.test");
+		String withoutSemicolons = getTestResource("groovy/removeSemicolons/GroovyCodeWithSemicolonsFormatted.test");
+		setFile("src/main/groovy/test.groovy").toContent(withSemicolons);
+		gradleRunner().withArguments("spotlessApply").build();
+		assertFile("src/main/groovy/test.groovy").hasContent(withoutSemicolons);
+	}
+
+	@Test
 	void groovyPluginMissingCheck() throws IOException {
 		setFile("build.gradle").toLines(
 				"plugins {",
@@ -103,7 +124,7 @@ class GroovyExtensionTest extends GradleIntegrationHarness {
 
 		Throwable error = assertThrows(Throwable.class,
 				() -> gradleRunner().withArguments("spotlessApply").build());
-		assertThat(error).hasMessageContaining("must apply the groovy plugin before");
+		assertThat(error).hasMessageContaining("You must either specify 'target' manually or apply the 'groovy' plugin.");
 	}
 
 }

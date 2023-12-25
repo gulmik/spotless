@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 DiffPlug
+ * Copyright 2020-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -64,14 +65,14 @@ public abstract class SpotlessTask extends DefaultTask {
 		this.encoding = Objects.requireNonNull(encoding);
 	}
 
-	protected final LiveCache<LineEnding.Policy> lineEndingsPolicy = createLive("lineEndingsPolicy");
+	protected final LiveCache<Provider<LineEnding.Policy>> lineEndingsPolicy = createLive("lineEndingsPolicy");
 
 	@Input
-	public LineEnding.Policy getLineEndingsPolicy() {
+	public Provider<LineEnding.Policy> getLineEndingsPolicy() {
 		return lineEndingsPolicy.get();
 	}
 
-	public void setLineEndingsPolicy(LineEnding.Policy lineEndingsPolicy) {
+	public void setLineEndingsPolicy(Provider<LineEnding.Policy> lineEndingsPolicy) {
 		this.lineEndingsPolicy.set(lineEndingsPolicy);
 	}
 
@@ -147,7 +148,7 @@ public abstract class SpotlessTask extends DefaultTask {
 		}
 	}
 
-	protected File outputDirectory = new File(getProject().getBuildDir(), "spotless/" + getName());
+	protected File outputDirectory = new File(getProject().getLayout().getBuildDirectory().getAsFile().get(), "spotless/" + getName());
 
 	@OutputDirectory
 	public File getOutputDirectory() {
@@ -184,7 +185,8 @@ public abstract class SpotlessTask extends DefaultTask {
 
 	Formatter buildFormatter() {
 		return Formatter.builder()
-				.lineEndingsPolicy(lineEndingsPolicy.get())
+				.name(formatName())
+				.lineEndingsPolicy(lineEndingsPolicy.get().get())
 				.encoding(Charset.forName(encoding))
 				.rootDir(getProjectDir().get().getAsFile().toPath())
 				.steps(steps.get())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 DiffPlug
+ * Copyright 2021-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class DiktatStep {
 
 	private static final String MIN_SUPPORTED_VERSION = "1.2.1";
 
-	private static final String DEFAULT_VERSION = "1.2.3";
+	private static final String DEFAULT_VERSION = "1.2.5";
 	static final String NAME = "diktat";
 	static final String PACKAGE_DIKTAT = "org.cqfn.diktat";
 	static final String MAVEN_COORDINATE = PACKAGE_DIKTAT + ":diktat-rules:";
@@ -51,10 +51,6 @@ public class DiktatStep {
 
 	public static FormatterStep create(String versionDiktat, Provisioner provisioner, @Nullable FileSignature config) {
 		return create(versionDiktat, provisioner, false, config);
-	}
-
-	public static FormatterStep createForScript(String versionDiktat, Provisioner provisioner, @Nullable FileSignature config) {
-		return create(versionDiktat, provisioner, true, config);
 	}
 
 	public static FormatterStep create(String versionDiktat, Provisioner provisioner, boolean isScript, @Nullable FileSignature config) {

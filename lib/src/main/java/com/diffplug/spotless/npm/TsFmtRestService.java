@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,19 @@ package com.diffplug.spotless.npm;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class TsFmtRestService {
-
-	private final SimpleRestClient restClient;
+public class TsFmtRestService extends BaseNpmRestService {
 
 	TsFmtRestService(String baseUrl) {
-		this.restClient = SimpleRestClient.forBaseUrl(baseUrl);
+		super(baseUrl);
 	}
 
 	public String format(String fileContent, Map<String, Object> configOptions) {
 		Map<String, Object> jsonProperties = new LinkedHashMap<>();
 		jsonProperties.put("file_content", fileContent);
 		if (configOptions != null && !configOptions.isEmpty()) {
-			jsonProperties.put("config_options", SimpleJsonWriter.of(configOptions).toJsonRawValue());
+			jsonProperties.put("config_options", JsonWriter.of(configOptions).toJsonRawValue());
 		}
 
 		return restClient.postJson("/tsfmt/format", jsonProperties);
 	}
-
-	public String shutdown() {
-		return restClient.post("/shutdown");
-	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.MyersDiff;
 import org.eclipse.jgit.diff.RawText;
@@ -143,17 +145,13 @@ public final class DiffMessageFormatter {
 				Objects.requireNonNull(runToFix, "runToFix");
 				Objects.requireNonNull(formatter, "formatter");
 				Objects.requireNonNull(problemFiles, "problemFiles");
-				DiffMessageFormatter diffFormater = new DiffMessageFormatter(this);
+				DiffMessageFormatter diffFormater = new DiffMessageFormatter(formatter, problemFiles);
 				return "The following files had format violations:\n"
 						+ diffFormater.buffer
 						+ runToFix;
 			} catch (IOException e) {
 				throw Errors.asRuntime(e);
 			}
-		}
-
-		String relativePath(File file) {
-			return formatter.getRootDir().relativize(file.toPath()).toString();
 		}
 	}
 
@@ -163,23 +161,30 @@ public final class DiffMessageFormatter {
 	private final StringBuilder buffer = new StringBuilder(MAX_CHECK_MESSAGE_LINES * 64);
 	private int numLines = 0;
 
-	private DiffMessageFormatter(Builder builder) throws IOException {
-		ListIterator<File> problemIter = builder.problemFiles.listIterator();
+	private final CleanProvider formatter;
+
+	private DiffMessageFormatter(CleanProvider formatter, List<File> problemFiles) throws IOException {
+		this.formatter = Objects.requireNonNull(formatter, "formatter");
+		ListIterator<File> problemIter = problemFiles.listIterator();
 		while (problemIter.hasNext() && numLines < MAX_CHECK_MESSAGE_LINES) {
 			File file = problemIter.next();
-			addFile(builder.relativePath(file) + "\n" + DiffMessageFormatter.diff(builder, file));
+			addFile(relativePath(file) + "\n" + diff(file));
 		}
 		if (problemIter.hasNext()) {
-			int remainingFiles = builder.problemFiles.size() - problemIter.nextIndex();
+			int remainingFiles = problemFiles.size() - problemIter.nextIndex();
 			if (remainingFiles >= MAX_FILES_TO_LIST) {
 				buffer.append("Violations also present in ").append(remainingFiles).append(" other files.\n");
 			} else {
 				buffer.append("Violations also present in:\n");
 				while (problemIter.hasNext()) {
-					addIntendedLine(NORMAL_INDENT, builder.relativePath(problemIter.next()));
+					addIntendedLine(NORMAL_INDENT, relativePath(problemIter.next()));
 				}
 			}
 		}
+	}
+
+	private String relativePath(File file) {
+		return formatter.getRootDir().relativize(file.toPath()).toString();
 	}
 
 	private static final int MIN_LINES_PER_FILE = 4;
@@ -230,10 +235,23 @@ public final class DiffMessageFormatter {
 	 * look like if formatted using the given formatter. Does not end with any newline
 	 * sequence (\n, \r, \r\n).
 	 */
-	private static String diff(Builder builder, File file) throws IOException {
-		String raw = new String(Files.readAllBytes(file.toPath()), builder.formatter.getEncoding());
+	private String diff(File file) throws IOException {
+		return diff(formatter, file).getValue();
+	}
+
+	/**
+	 * Returns a map entry with value being a git-style diff between the contents of the given file and what those contents would
+	 * look like if formatted using the given formatter. Does not end with any newline
+	 * sequence (\n, \r, \r\n). The key of the map entry is the 0-based line where the first difference occurred.
+	 */
+	public static Map.Entry<Integer, String> diff(Formatter formatter, File file) throws IOException {
+		return diff(new CleanProviderFormatter(formatter), file);
+	}
+
+	private static Map.Entry<Integer, String> diff(CleanProvider formatter, File file) throws IOException {
+		String raw = new String(Files.readAllBytes(file.toPath()), formatter.getEncoding());
 		String rawUnix = LineEnding.toUnix(raw);
-		String formatted = builder.formatter.getFormatted(file, rawUnix);
+		String formatted = formatter.getFormatted(file, rawUnix);
 		String formattedUnix = LineEnding.toUnix(formatted);
 
 		if (rawUnix.equals(formattedUnix)) {
@@ -245,13 +263,13 @@ public final class DiffMessageFormatter {
 	}
 
 	/**
-	 * Returns a git-style diff between the two unix strings.
-	 *
+	 * Returns a map entry with value being a git-style diff between the two unix strings and key being the 0-based line of the first difference (in the dirty string)
+	 * <p>
 	 * Output has no trailing newlines.
-	 *
+	 * <p>
 	 * Boolean args determine whether whitespace or line endings will be visible.
 	 */
-	private static String diffWhitespaceLineEndings(String dirty, String clean, boolean whitespace, boolean lineEndings) throws IOException {
+	private static Map.Entry<Integer, String> diffWhitespaceLineEndings(String dirty, String clean, boolean whitespace, boolean lineEndings) throws IOException {
 		dirty = visibleWhitespaceLineEndings(dirty, whitespace, lineEndings);
 		clean = visibleWhitespaceLineEndings(clean, whitespace, lineEndings);
 
@@ -268,14 +286,18 @@ public final class DiffMessageFormatter {
 
 		// we don't need the diff to show this, since we display newlines ourselves
 		formatted = formatted.replace("\\ No newline at end of file\n", "");
-		return NEWLINE_MATCHER.trimTrailingFrom(formatted);
+		return Map.entry(getLineOfFirstDifference(edits), NEWLINE_MATCHER.trimTrailingFrom(formatted));
+	}
+
+	private static int getLineOfFirstDifference(EditList edits) {
+		return edits.stream().mapToInt(Edit::getBeginA).min().getAsInt();
 	}
 
 	private static final CharMatcher NEWLINE_MATCHER = CharMatcher.is('\n');
 
 	/**
 	 * Makes the whitespace and/or the lineEndings visible.
-	 *
+	 * <p>
 	 * MyersDiff wants inputs with only unix line endings.  So this ensures that that is the case.
 	 */
 	private static String visibleWhitespaceLineEndings(String input, boolean whitespace, boolean lineEndings) {

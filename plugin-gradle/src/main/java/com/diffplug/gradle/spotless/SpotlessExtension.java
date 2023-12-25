@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public abstract class SpotlessExtension {
 	}
 
 	/** Line endings (if any). */
-	LineEnding lineEndings = LineEnding.GIT_ATTRIBUTES;
+	LineEnding lineEndings = LineEnding.GIT_ATTRIBUTES_FAST_ALLSAME;
 
 	public LineEnding getLineEndings() {
 		return lineEndings;
@@ -147,6 +147,12 @@ public abstract class SpotlessExtension {
 		format(FreshMarkExtension.NAME, FreshMarkExtension.class, closure);
 	}
 
+	/** Configures the special flexmark-specific extension. */
+	public void flexmark(Action<FlexmarkExtension> closure) {
+		requireNonNull(closure);
+		format(FlexmarkExtension.NAME, FlexmarkExtension.class, closure);
+	}
+
 	/** Configures the special groovy-specific extension. */
 	public void groovy(Action<GroovyExtension> closure) {
 		format(GroovyExtension.NAME, GroovyExtension.class, closure);
@@ -165,6 +171,11 @@ public abstract class SpotlessExtension {
 	/** Configures the special C/C++-specific extension. */
 	public void cpp(Action<CppExtension> closure) {
 		format(CppExtension.NAME, CppExtension.class, closure);
+	}
+
+	/** Configures the special javascript-specific extension for javascript files. */
+	public void javascript(Action<JavascriptExtension> closure) {
+		format(JavascriptExtension.NAME, JavascriptExtension.class, closure);
 	}
 
 	/** Configures the special typescript-specific extension for typescript files. */
@@ -188,6 +199,24 @@ public abstract class SpotlessExtension {
 		format(JsonExtension.NAME, JsonExtension.class, closure);
 	}
 
+	/** Configures the special protobuf-specific extension. */
+	public void protobuf(Action<ProtobufExtension> closure) {
+		requireNonNull(closure);
+		format(ProtobufExtension.NAME, ProtobufExtension.class, closure);
+	}
+
+	/** Configures the special YAML-specific extension. */
+	public void yaml(Action<YamlExtension> closure) {
+		requireNonNull(closure);
+		format(YamlExtension.NAME, YamlExtension.class, closure);
+	}
+
+	/** Configures the special Gherkin-specific extension. */
+	public void gherkin(Action<GherkinExtension> closure) {
+		requireNonNull(closure);
+		format(GherkinExtension.NAME, GherkinExtension.class, closure);
+	}
+
 	/** Configures a custom extension. */
 	public void format(String name, Action<FormatExtension> closure) {
 		requireNonNull(name, "name");
@@ -205,7 +234,7 @@ public abstract class SpotlessExtension {
 	/**
 	 * Configures Gradle's {@code check} task to run {@code spotlessCheck} if {@code true},
 	 * but to not do so if {@code false}.
-	 *
+	 * <p>
 	 * {@code true} by default.
 	 */
 	public void setEnforceCheck(boolean enforceCheck) {

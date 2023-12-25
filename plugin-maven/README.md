@@ -2,29 +2,21 @@
 
 <!---freshmark shields
 output = [
-  link(shield('Maven central', 'mavencentral', '{{group}}:{{artifactIdMaven}}', 'blue'), 'https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22{{group}}%22%20AND%20a%3A%22{{artifactIdMaven}}%22'),
-  link(shield('Javadoc', 'javadoc', 'yes', 'blue'), 'https://javadoc.io/doc/com.diffplug.spotless/spotless-maven-plugin/{{versionLast}}/index.html'),
-  link(shield('Changelog', 'changelog', '{{versionLast}}', 'brightgreen'), 'CHANGES.md'),
-  '',
-  link(image('Circle CI', 'https://circleci.com/gh/diffplug/spotless/tree/main.svg?style=shield'), 'https://circleci.com/gh/diffplug/spotless/tree/main'),
-  link(shield('Live chat', 'gitter', 'chat', 'brightgreen'), 'https://gitter.im/{{org}}/{{name}}'),
-  link(shield('License Apache', 'license', 'apache', 'brightgreen'), 'https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)')
+  link(shield('MavenCentral', 'mavencentral', '{{group}}:{{artifactIdMaven}}', 'blue'), 'https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22{{group}}%22%20AND%20a%3A%22{{artifactIdMaven}}%22'),
+  link(shield('Changelog', 'changelog', '{{versionLast}}', 'blue'), 'CHANGES.md'),
+  link(shield('Javadoc', 'javadoc', 'here', 'blue'), 'https://javadoc.io/doc/com.diffplug.spotless/spotless-maven-plugin/{{versionLast}}/index.html')
   ].join('\n');
 -->
-[![Maven central](https://img.shields.io/badge/mavencentral-com.diffplug.spotless%3Aspotless--maven--plugin-blue.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.spotless%22%20AND%20a%3A%22spotless-maven-plugin%22)
-[![Javadoc](https://img.shields.io/badge/javadoc-yes-blue.svg)](https://javadoc.io/doc/com.diffplug.spotless/spotless-maven-plugin/2.27.2/index.html)
-[![Changelog](https://img.shields.io/badge/changelog-2.27.2-brightgreen.svg)](CHANGES.md)
-
-[![Circle CI](https://circleci.com/gh/diffplug/spotless/tree/main.svg?style=shield)](https://circleci.com/gh/diffplug/spotless/tree/main)
-[![Live chat](https://img.shields.io/badge/gitter-chat-brightgreen.svg)](https://gitter.im/diffplug/spotless)
-[![License Apache](https://img.shields.io/badge/license-apache-brightgreen.svg)](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
+[![MavenCentral](https://img.shields.io/badge/mavencentral-com.diffplug.spotless%3Aspotless--maven--plugin-blue.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.spotless%22%20AND%20a%3A%22spotless-maven-plugin%22)
+[![Changelog](https://img.shields.io/badge/changelog-2.41.1-blue.svg)](CHANGES.md)
+[![Javadoc](https://img.shields.io/badge/javadoc-here-blue.svg)](https://javadoc.io/doc/com.diffplug.spotless/spotless-maven-plugin/2.41.1/index.html)
 <!---freshmark /shields -->
 
 <!---freshmark javadoc
 output = prefixDelimiterReplace(input, 'https://{{org}}.github.io/{{name}}/javadoc/spotless-plugin-maven/', '/', versionLast)
 -->
 
-Spotless is a general-purpose formatting plugin used by [4,000 projects on GitHub (August 2020)](https://github.com/search?l=gradle&q=spotless&type=Code).  It is completely à la carte, but also includes powerful "batteries-included" if you opt-in. Plugin requires a version of Maven higher or equal to 3.1.0.
+Spotless is a general-purpose formatting plugin used by [6,000 projects on GitHub (Jan 2023)](https://github.com/search?l=Maven+POM&q=spotless&type=Code).  It is completely à la carte, but also includes powerful "batteries-included" if you opt-in. Plugin requires a version of Maven higher or equal to 3.1.0.
 
 To people who use your build, it looks like this:
 
@@ -47,7 +39,7 @@ user@machine repo % mvn spotless:check
   - [Requirements](#requirements)
   - [Binding to maven phase](#binding-to-maven-phase)
 - **Languages**
-  - [Java](#java) ([google-java-format](#google-java-format), [eclipse jdt](#eclipse-jdt), [prettier](#prettier), [palantir-java-format](#palantir-java-format), [formatAnnotations](#formatAnnotations))
+  - [Java](#java) ([google-java-format](#google-java-format), [eclipse jdt](#eclipse-jdt), [prettier](#prettier), [palantir-java-format](#palantir-java-format), [formatAnnotations](#formatAnnotations), [cleanthat](#cleanthat))
   - [Groovy](#groovy) ([eclipse groovy](#eclipse-groovy))
   - [Kotlin](#kotlin) ([ktfmt](#ktfmt), [ktlint](#ktlint), [diktat](#diktat), [prettier](#prettier))
   - [Scala](#scala) ([scalafmt](#scalafmt))
@@ -57,10 +49,15 @@ user@machine repo % mvn spotless:check
   - [Sql](#sql) ([dbeaver](#dbeaver))
   - [Maven Pom](#maven-pom) ([sortPom](#sortpom))
   - [Markdown](#markdown) ([flexmark](#flexmark))
-  - [Typescript](#typescript) ([tsfmt](#tsfmt), [prettier](#prettier))
+  - [Typescript](#typescript) ([tsfmt](#tsfmt), [prettier](#prettier), [ESLint](#eslint-typescript), [Biome](#biome))
+  - [Javascript](#javascript) ([prettier](#prettier), [ESLint](#eslint-javascript), [Biome](#biome))
+  - [JSON](#json) ([simple](#simple), [gson](#gson), [jackson](#jackson), [Biome](#biome), [jsonPatch](#jsonPatch))
+  - [YAML](#yaml)
+  - [Gherkin](#gherkin)
   - Multiple languages
-    - [Prettier](#prettier) ([plugins](#prettier-plugins), [npm detection](#npm-detection), [`.npmrc` detection](#npmrc-detection))
+    - [Prettier](#prettier) ([plugins](#prettier-plugins), [npm detection](#npm-detection), [`.npmrc` detection](#npmrc-detection), [caching `npm install` results](#caching-results-of-npm-install))
     - [eclipse web tools platform](#eclipse-web-tools-platform)
+    - [Biome](#biome) ([binary detection](#biome-binary), [config file](#biome-configuration-file), [input language](#biome-input-language))
 - **Language independent**
   - [Generic steps](#generic-steps)
   - [License header](#license-header) ([slurp year from git](#retroactively-slurp-years-from-git-history))
@@ -76,7 +73,7 @@ user@machine repo % mvn spotless:check
 
 ## Quickstart
 
-To use it in your pom, just [add the Spotless dependency](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.spotless%22%20AND%20a%3A%22spotless-maven-plugin%22), and configure it like so:
+To use it in your pom, just [add the Spotless plugin](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.spotless%22%20AND%20a%3A%22spotless-maven-plugin%22), and configure it like so:
 
 ```xml
 <plugin>
@@ -91,7 +88,7 @@ To use it in your pom, just [add the Spotless dependency](https://search.maven.o
       <format>
         <!-- define the files to apply to -->
         <includes>
-          <include>*.md</include>
+          <include>.gitattributes</include>
           <include>.gitignore</include>
         </includes>
         <!-- define the steps to apply to those files -->
@@ -112,6 +109,7 @@ To use it in your pom, just [add the Spotless dependency](https://search.maven.o
         <version>1.8</version>
         <style>AOSP</style>
         <reflowLongStrings>true</reflowLongStrings>
+        <formatJavadoc>false</formatJavadoc>
       </googleJavaFormat>
 
       <!-- make sure every file has the following copyright header.
@@ -128,11 +126,20 @@ To use it in your pom, just [add the Spotless dependency](https://search.maven.o
 Spotless consists of a list of formats (in the example above, `misc` and `java`), and each format has:
 - a `target` (the files to format), which you set with [`includes` and `excludes`](https://github.com/diffplug/spotless/blob/989abbecff4d8373c6111c1a98f359eadc532429/plugin-maven/src/main/java/com/diffplug/spotless/maven/FormatterFactory.java#L51-L55)
 - a list of `FormatterStep`, which are just `String -> String` functions, such as [`replace`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/Replace.java), [`replaceRegex`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/ReplaceRegex.java), [`trimTrailingWhitespace`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/TrimTrailingWhitespace.java), [`indent`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/Indent.java), [`prettier`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/Prettier.java), [`eclipseWtp`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/EclipseWtp.java), and [`licenseHeader`](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/generic/LicenseHeader.java).
-
+- **order matters**, and this is good! (More info [here](https://github.com/diffplug/spotless/blob/main/PADDEDCELL.md) and [here](https://github.com/diffplug/spotless/blob/main/CONTRIBUTING.md#how-spotless-works))
+  - For example, `googleJavaFormat` always indents with spaces, but some wish it had a tab mode
+    - ```xml
+      <googleJavaFormat/> // this works
+      <indent><tabs>true</tabs><spacesPerTab>2</spacesPerTab></indent>
+       ```
+    - ```xml
+      <indent><tabs>true</tabs><spacesPerTab>2</spacesPerTab></indent>
+      <googleJavaFormat/> // the tab indentation gets overwritten
+       ```
 
 ### Requirements
 
-Spotless requires Maven to be running on JRE 8+.
+Spotless requires Maven to be running on JRE 11+. To use JRE 8, go back to [`2.30.0` or older](https://github.com/diffplug/spotless/blob/main/plugin-maven/CHANGES.md#2300---2023-01-13).
 
 <a name="applying-to-java-source"></a>
 
@@ -178,18 +185,28 @@ any other maven phase (i.e. compile) then it can be configured as below;
       <include>src/test/java/**/*.java</include>
     </includes>
 
-    <importOrder /> <!-- standard import order -->
-    <importOrder>  <!-- or a custom ordering -->
-      <wildcardsLast>false</wildcardsLast> <!-- Optional, default false. Sort wildcard import after specific imports -->
-      <order>java,javax,org,com,com.diffplug,,\\#com.diffplug,\\#</order>  <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
-      <!-- you can use an empty string for all the imports you didn't specify explicitly, and '\\#` prefix for static imports. -->
-    </importOrder>
-
-    <removeUnusedImports /> <!-- self-explanatory -->
+    <!-- Cleanthat will refactor your code, but it may break your style: apply it before your formatter -->
+    <cleanthat />        <!-- has its own section below -->
 
     <googleJavaFormat /> <!-- has its own section below -->
     <eclipse />          <!-- has its own section below -->
     <prettier />         <!-- has its own section below -->
+
+    <importOrder /> <!-- standard import order -->
+    <importOrder>  <!-- or a custom ordering -->
+      <wildcardsLast>false</wildcardsLast> <!-- Optional, default false. Sort wildcard import after specific imports -->
+      <order>java|javax,org,com,com.diffplug,,\#com.diffplug,\#</order>  <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
+      <!-- you can use an empty string for all the imports you didn't specify explicitly, '|' to join group without blank line, and '\#` prefix for static imports. -->
+      <semanticSort>false</semanticSort> <!-- Optional, default false. Sort by package, then class, then member (for static imports). Splitting is based on common conventions (packages are lower case, classes start with upper case). Use <treatAsPackage> and <treatAsClass> for exceptions. -->
+      <treatAsPackage> <!-- Packages starting with upper case letters. -->
+        <package>com.example.MyPackage</package>
+      </treatAsPackage>
+      <treatAsClass> <!-- Classes starting with lower case letters. -->
+        <class>com.example.myClass</class>
+      </treatAsClass>
+    </importOrder>
+
+    <removeUnusedImports /> <!-- self-explanatory -->
 
     <formatAnnotations />  <!-- fixes formatting of type annotations, see below -->
 
@@ -200,15 +217,24 @@ any other maven phase (i.e. compile) then it can be configured as below;
 </configuration>
 ```
 
+### removeUnusedImports
+
+```xml
+<removeUnusedImports>
+  <engine>google-java-format</engine>    <!-- optional. Defaults to `google-java-format`. Can be switched to `cleanthat-javaparser-unnecessaryimport` (e.g. to process JDK17 source files with a JDK8+ Runtime) -->
+</removeUnusedImports>
+```
+
 ### google-java-format
 
 [homepage](https://github.com/google/google-java-format). [changelog](https://github.com/google/google-java-format/releases). [code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/java/GoogleJavaFormat.java).
 
 ```xml
 <googleJavaFormat>
-  <version>1.8</version>                      <!-- optional -->
+  <version>1.8</version>                      <!-- optional, 1.8 is minimum supported version -->
   <style>GOOGLE</style>                       <!-- or AOSP (optional) -->
-  <reflowLongStrings>true</reflowLongStrings> <!-- optional (requires at least 1.8) -->
+  <reflowLongStrings>true</reflowLongStrings> <!-- optional -->
+  <formatJavadoc>false</formatJavadoc>        <!-- optional -->
   <!-- optional: custom group artifact (you probably don't need this) -->
   <groupArtifact>com.google.googlejavaformat:google-java-format</groupArtifact>
 </googleJavaFormat>
@@ -221,6 +247,7 @@ any other maven phase (i.e. compile) then it can be configured as below;
 ```xml
 <palantirJavaFormat>
   <version>2.10.0</version>                     <!-- optional -->
+  <style>PALANTIR</style>                       <!-- or AOSP/GOOGLE (optional) -->
 </palantirJavaFormat>
 ```
 
@@ -230,7 +257,7 @@ any other maven phase (i.e. compile) then it can be configured as below;
 
 ```xml
 <eclipse>
-  <version>4.13.0</version>                     <!-- optional -->
+  <version>4.26</version>                     <!-- optional version of Eclipse Formatter -->
   <file>${project.basedir}/eclipse-formatter.xml</file> <!-- optional -->
 </eclipse>
 ```
@@ -270,6 +297,26 @@ list of well-known type annotations.  You can make a pull request to add new one
 In the future there will be mechanisms to add/remove annotations from the list.
 These mechanisms already exist for the Gradle plugin.
 
+### Cleanthat
+
+[homepage](https://github.com/solven-eu/cleanthat). CleanThat enables automatic refactoring of Java code. [ChangeLog](https://github.com/solven-eu/cleanthat/blob/master/CHANGES.MD)
+
+```xml
+<cleanthat>
+  <version>2.8</version>                          <!-- optional version of Cleanthat -->
+  <sourceJdk>${maven.compiler.source}</sourceJdk> <!-- optional. Default to ${maven.compiler.source} else '1.7' -->
+  <mutators>
+    <mutator>SafeAndConsensual</mutator>          <!-- optional. Default to 'SafeAndConsensual' to include all mutators -->
+  </mutators>
+  <mutators>            <!-- List of mutators: https://github.com/solven-eu/cleanthat/blob/master/MUTATORS.generated.MD -->
+    <mutator>LiteralsFirstInComparisons</mutator> <!-- You may alternatively list the requested mutators -->
+  </mutators>
+  <excludedMutators>
+    <excludedMutator>OptionalNotEmpty</excludedMutator> <!-- You can discard specific rules -->
+  </excludedMutators>
+  <includeDraft>false</includeDraft>              <!-- optional. Default to false, not to include draft mutators from Composite mutators -->
+</cleanthat>
+```
 
 ## Groovy
 
@@ -284,14 +331,16 @@ These mechanisms already exist for the Gradle plugin.
       <include>src/test/groovy/**/*.groovy</include>
     </includes>
 
-    <importOrder /> <!-- standard import order -->
+    <importOrder/> <!-- standard import order -->
     <importOrder>  <!-- or a custom ordering -->
-      <order>java,javax,org,com,com.diffplug,,\\#com.diffplug,\\#</order>  <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
-      <!-- you can use an empty string for all the imports you didn't specify explicitly, and '\\#` prefix for static imports -->
+      <order>java|javax,org,com,com.diffplug,,\#com.diffplug,\#</order>  <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
+      <!-- you can use an empty string for all the imports you didn't specify explicitly, '|' to join group without blank line, and '\#` prefix for static imports. -->
     </importOrder>
+    
+    <removeSemicolons/> <!-- removes semicolons at the end of lines -->
+    <greclipse/>          <!-- has its own section below -->
 
-    <greclipse />          <!-- has its own section below -->
-
+    <excludeJava/>
     <licenseHeader>
       <content>/* (C)$YEAR */</content>  <!-- or <file>${project.basedir}/license-header</file> -->
     </licenseHeader>
@@ -305,7 +354,7 @@ These mechanisms already exist for the Gradle plugin.
 
 ```xml
 <greclipse>
-  <version>4.13.0</version>                     <!-- optional -->
+  <version>4.26</version>  <!-- optional version of Eclipse Formatter -->
   <file>${project.basedir}/greclipse.properties</file> <!-- optional -->
 </greclipse>
 ```
@@ -354,15 +403,24 @@ Groovy-Eclipse formatting errors/warnings lead per default to a build failure. T
 
 ### ktlint
 
-[homepage](https://github.com/pinterest/ktlint). [changelog](https://github.com/pinterest/ktlint/releases). [code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/kotlin/Ktlint.java).  Spotless does not ([yet](https://github.com/diffplug/spotless/issues/142)) respect the `.editorconfig` settings.
+[homepage](https://github.com/pinterest/ktlint). [changelog](https://github.com/pinterest/ktlint/releases).
+[code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/kotlin/Ktlint.java).
+
+Spotless respects the `.editorconfig` settings by providing `editorConfigPath` option.
+([ktlint docs](https://github.com/pinterest/ktlint#editorconfig)).
+
+Additionally, `editorConfigOverride` options will override what's supplied in `.editorconfig` file.
 
 ```xml
 <ktlint>
-  <version>0.43.2</version> <!-- optional -->
+  <version>1.0.0</version> <!-- optional -->
   <editorConfigOverride> <!-- optional -->
     <ij_kotlin_allow_trailing_comma>true</ij_kotlin_allow_trailing_comma>
     <ij_kotlin_allow_trailing_comma_on_call_site>true</ij_kotlin_allow_trailing_comma_on_call_site>
   </editorConfigOverride>
+  <customRuleSets> <!-- optional -->
+    <value>io.nlopez.compose.rules:ktlint:0.3.3</value>
+  </customRuleSets>
 </ktlint>
 ```
 
@@ -415,7 +473,7 @@ Groovy-Eclipse formatting errors/warnings lead per default to a build failure. T
 <scalafmt>
   <version>3.5.9</version>              <!-- optional -->
   <file>${project.basedir}/scalafmt.conf</file> <!-- optional -->
-  <majorScalaVersion>2.13</majorScalaVersion> <!-- optional -->
+  <scalaMajorVersion>2.13</scalaMajorVersion> <!-- optional -->
 </scalafmt>
 ```
 
@@ -431,7 +489,7 @@ Groovy-Eclipse formatting errors/warnings lead per default to a build failure. T
 <configuration>
   <cpp>
     <includes> <!-- You have to set the target manually -->
-      <include>src/native/**</inclue>
+      <include>src/native/**</include>
     </includes>
 
     <eclipseCdt /> <!-- has its own section below -->
@@ -449,7 +507,7 @@ Groovy-Eclipse formatting errors/warnings lead per default to a build failure. T
 
 ```xml
 <eclipseCdt>
-  <version>4.13.0</version>               <!-- optional -->
+  <version>11.0</version> <!-- optional version of Eclipse Formatter, others at https://download.eclipse.org/tools/cdt/releases/ -->
   <file>${project.basedir}/eclipse-cdt.xml</file> <!-- optional -->
 </eclipseCdt>
 ```
@@ -660,6 +718,8 @@ Currently, none of the available options can be configured yet. It uses only the
 
     <tsfmt/>    <!-- has its own section below -->
     <prettier/> <!-- has its own section below -->
+    <eslint/>   <!-- has its own section below -->
+    <biome/>    <!-- has its own section below -->
 
     <licenseHeader>
       <content>/* (C)$YEAR */</content>  <!-- or <file>${project.basedir}/license-header</file> -->
@@ -698,9 +758,294 @@ The auto-discovery of config files (up the file tree) will not work when using t
 
 **Prerequisite: tsfmt requires a working NodeJS version**
 
-For details, see the [npm detection](#npm-detection) and [`.npmrc` detection](#npmrc-detection) sections of prettier, which apply also to tsfmt.
+For details, see the [npm detection](#npm-detection), [`.npmrc` detection](#npmrc-detection) and [caching results of `npm install`](#caching-results-of-npm-install) sections of prettier, which apply also to tsfmt.
+
+### ESLint (typescript)
+
+[npm](https://www.npmjs.com/package/eslint). [changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md). *Please note:*
+The auto-discovery of config files (up the file tree) will not work when using ESLint within spotless,
+hence you are required to provide resolvable file paths for config files, or alternatively provide the configuration inline.
+
+The configuration is very similar to the [ESLint (Javascript)](#eslint-javascript) configuration. In typescript, a
+reference to a `tsconfig.json` is required.
+
+```xml
+<eslint>
+  <!-- Specify at most one of the following 3 configs: either 'eslintVersion', 'devDependencies' or 'devDependencyProperties'  -->
+  <eslintVersion>8.30.0</eslintVersion>
+  <devDependencies>
+    <myEslintFork>8.30.0</myEslintFork>
+    <myEslintPlugin>1.2.1</myEslintPlugin>
+  </devDependencies>
+  <devDependencyProperties>
+    <property>
+      <name>eslint</name>
+      <value>8.30.0</value>
+    </property>
+    <property>
+      <name>@eslint/my-plugin-typescript</name> <!-- this could not be written in the simpler to write 'devDependencies' element. -->
+      <value>0.14.2</value>
+    </property>
+  </devDependencyProperties>
+  <!-- mandatory: provide either a configFile or a configJs object -->
+  <configFile>${project.basedir}/.eslintrc.js</configFile>
+  <configJs>
+    {
+      env: {
+        browser: true,
+        es2021: true
+      },
+      extends: 'standard-with-typescript',
+      overrides: [
+      ],
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json',
+      },
+      rules: {
+      }
+    }
+  </configJs>
+  <!-- recommended: provide a tsconfigFile - especially when using the styleguides -->
+  <tsconfigFile>${project.basedir}/tsconfig.json</tsconfigFile>
+</eslint>
+```
+
+**Prerequisite: ESLint requires a working NodeJS version**
+
+For details, see the [npm detection](#npm-detection), [`.npmrc` detection](#npmrc-detection) and [caching results of `npm install`](#caching-results-of-npm-install) sections of prettier, which apply also to ESLint.
+
+
+## Javascript
+
+[code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/javascript/Javascript.java). [available steps](https://github.com/diffplug/spotless/tree/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/javascript).
+
+```xml
+<configuration>
+  <typescript>
+    <includes> <!-- You have to set the target manually -->
+      <include>src/**/*.js</include>
+    </includes>
+
+    <prettier/> <!-- has its own section below -->
+    <eslint/>   <!-- has its own section below -->
+    <biome/>    <!-- has its own section below -->
+
+    <licenseHeader>
+      <content>/* (C)$YEAR */</content>  <!-- or <file>${project.basedir}/license-header</file> -->
+      <delimiter>REGEX_TO_DEFINE_TOP_OF_FILE</delimiter> <!-- set a regex to define the top of the file -->
+    </licenseHeader>
+  </typescript>
+</configuration>
+```
+
+### ESLint (Javascript)
+
+[npm](https://www.npmjs.com/package/eslint). [changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md). *Please note:*
+The auto-discovery of config files (up the file tree) will not work when using ESLint within spotless,
+hence you are required to provide resolvable file paths for config files, or alternatively provide the configuration inline.
+
+The configuration is very similar to the [ESLint (Typescript)](#eslint-typescript) configuration. In javascript, *no*
+`tsconfig.json` is supported.
+
+```xml
+<eslint>
+  <!-- Specify at most one of the following 3 configs: either 'eslintVersion', 'devDependencies' or 'devDependencyProperties'  -->
+  <eslintVersion>8.30.0</eslintVersion>
+  <devDependencies>
+    <myEslintFork>8.30.0</myEslintFork>
+    <myEslintPlugin>1.2.1</myEslintPlugin>
+  </devDependencies>
+  <devDependencyProperties>
+    <property>
+      <name>eslint</name>
+      <value>8.30.0</value>
+    </property>
+    <property>
+      <name>@eslint/my-plugin-javascript</name> <!-- this could not be written in the simpler to write 'devDependencies' element. -->
+      <value>0.14.2</value>
+    </property>
+  </devDependencyProperties>
+  <!-- mandatory: provide either a configFile or a configJs object -->
+  <configFile>${project.basedir}/.eslintrc.js</configFile>
+  <configJs>
+    {
+      env: {
+        browser: true,
+        es2021: true
+      },
+      extends: 'standard',
+      overrides: [
+      ],
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      },
+      rules: {
+      }
+    }
+  </configJs>
+</eslint>
+```
+
+**Prerequisite: ESLint requires a working NodeJS version**
+
+For details, see the [npm detection](#npm-detection), [`.npmrc` detection](#npmrc-detection) and [caching results of `npm install`](#caching-results-of-npm-install) sections of prettier, which apply also to ESLint.
+
+## JSON
+
+- `com.diffplug.spotless.maven.json.Json` [code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/json/Json.java)
+
+```xml
+<configuration>
+  <json>
+    <includes>    <!-- You have to set the target manually -->
+      <include>src/**/*.json</include>
+    </includes>
+
+    <simple />         <!-- has its own section below -->
+    <gson />           <!-- has its own section below -->
+    <jackson />        <!-- has its own section below -->
+    <biome />          <!-- has its own section below -->
+    <jsonPatch />      <!-- has its own section below -->
+  </json>
+</configuration>
+```
+
+### simple
+
+Uses a JSON pretty-printer that optionally allows configuring the number of spaces that are used to pretty print objects:
+
+```xml
+<simple>
+  <indentSpaces>4</indentSpaces>    <!-- optional: specify the number of spaces to use -->
+</simple>
+```
+
+### Gson
+
+Uses Google Gson to also allow sorting by keys besides custom indentation - useful for i18n files.
+
+```xml
+<gson>
+  <indentSpaces>4</indentSpaces>        <!-- optional: specify the number of spaces to use -->
+  <sortByKeys>false</sortByKeys>        <!-- optional: sort JSON by its keys -->
+  <escapeHtml>false</indentSpaces>      <!-- optional: escape HTML in values -->
+  <version>2.8.1</version>              <!-- optional: specify version -->
+</gson>
+```
+
+Notes:
+* There's no option in Gson to leave HTML as-is (i.e. escaped HTML would remain escaped, raw would remain raw). Either
+all HTML characters are written escaped or none. Set `escapeHtml` if you prefer the former.
+* `sortByKeys` will apply lexicographic order on the keys of the input JSON. See the
+[javadoc of String](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html#compareTo(java.lang.String))
+for details.
+
+### Jackson
+
+Uses Jackson for formatting.
+
+```xml
+<jackson>
+  <version>2.14.1</version>    <!-- optional: The version of 'com.fasterxml.jackson.core:jackson-databind' to be used -->
+  <features>                   <!-- optional: Customize the set of features (based on com.fasterxml.jackson.databind.SerializationFeature) -->
+    <INDENT_OUTPUT>true</INDENT_OUTPUT>                            <!-- optional: true by default -->
+    <ORDER_MAP_ENTRIES_BY_KEYS>false</ORDER_MAP_ENTRIES_BY_KEYS>   <!-- optional: false by default -->
+    <ANY_OTHER_FEATURE>true|false</ANY_OTHER_FEATURE>              <!-- any SerializationFeature can be toggled on or off -->
+  </features>
+  <jsonFeatures>
+    <QUOTE_FIELD_NAMES>false</QUOTE_FIELD_NAMES>                   <!-- false by default -->
+    <ANY_OTHER_FEATURE>true|false</ANY_OTHER_FEATURE>              <!-- any JsonGenerator.Feature can be toggled on or off -->
+  </jsonFeatures>
+  <spaceBeforeSeparator>false</spaceBeforeSeparator>               <!-- optional: false by default -->
+</jackson>
+```
 
 <a name="applying-prettier-to-javascript--flow--typescript--css--scss--less--jsx--graphql--yaml--etc"></a>
+
+### jsonPatch
+
+Uses [zjsonpatch](https://github.com/flipkart-incubator/zjsonpatch) to apply [JSON Patches](https://jsonpatch.com/) as per [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/) to JSON documents.
+
+This enables you to add, replace or remove properties at locations in the JSON document that you specify using [JSON Pointers](https://datatracker.ietf.org/doc/html/rfc6901/).
+
+For example, to apply the patch from the [JSON Patch homepage](https://jsonpatch.com/#the-patch):
+
+```xml
+<jsonPatch>[
+  { "op": "replace", "path": "/baz", "value": "boo" },
+  { "op": "add", "path": "/hello", "value": ["world"] },
+  { "op": "remove", "path": "/foo" }
+]</jsonPatch>
+```
+
+## YAML
+
+- `com.diffplug.spotless.maven.FormatterFactory.addStepFactory(FormatterStepFactory)` [code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/yaml/Yaml.java)
+
+```xml
+<configuration>
+  <yaml>
+    <includes>     <!-- You have to set the target manually -->
+      <include>src/**/*.yaml</include>
+    </includes>
+
+    <jackson />    <!-- has its own section below -->
+    <prettier />   <!-- has its own section below -->
+  </yaml>
+</configuration>
+```
+
+### jackson
+
+Uses Jackson and YAMLFactory to pretty print objects:
+
+```xml
+<jackson>
+  <version>2.14.1</version>    <!-- optional: The version of 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml' to be used -->
+  <features>                   <!-- optional: Customize the set of features (based on com.fasterxml.jackson.databind.SerializationFeature) -->
+    <INDENT_OUTPUT>true</INDENT_OUTPUT>                            <!-- true by default -->
+    <ORDER_MAP_ENTRIES_BY_KEYS>false</ORDER_MAP_ENTRIES_BY_KEYS>   <!-- false by default -->
+    <ANY_OTHER_FEATURE>true|false</ANY_OTHER_FEATURE>              <!-- any SerializationFeature can be toggled on or off -->
+  </features>
+  <yamlFeatures>
+    <WRITE_DOC_START_MARKER>true</WRITE_DOC_START_MARKER>          <!-- false by default -->
+    <MINIMIZE_QUOTES>false</MINIMIZE_QUOTES>                       <!-- false by default -->
+    <ANY_OTHER_FEATURE>true|false</ANY_OTHER_FEATURE>              <!-- any YAMLGenerator.Feature can be toggled on or off -->
+  </yamlFeatures>
+  <spaceBeforeSeparator>false</spaceBeforeSeparator>   <!-- optional: false by default -->
+</jackson>
+```
+
+## Gherkin
+
+- `com.diffplug.spotless.maven.FormatterFactory.addStepFactory(FormatterStepFactory)` [code](https://github.com/diffplug/spotless/blob/main/plugin-maven/src/main/java/com/diffplug/spotless/maven/gherkin/Gherkin.java)
+
+```gradle
+<configuration>
+  <gherkin>
+    <includes>     <!-- You have to set the target manually -->
+      <include>src/**/*.feature</include>
+    </includes>
+
+    <gherkinUtils />    <!-- has its own section below -->
+  </gherkin>
+</configuration>
+```
+
+### gherkinUtils
+
+[homepage](https://github.com/cucumber/gherkin-utils). [changelog](https://github.com/cucumber/gherkin-utils/blob/main/CHANGELOG.md).
+
+Uses a Gherkin pretty-printer that optionally allows configuring the number of spaces that are used to pretty print objects:
+
+```xml
+<gherkinUtils>
+  <version>8.0.2</version>                 <!-- optional: Custom version of 'io.cucumber:gherkin-utils' -->
+</gherkinUtils>
+```
 
 ## Prettier
 
@@ -725,17 +1070,19 @@ You can use prettier in any language-specific format, but usually you will be cr
         <devDependencyProperties>
           <property>
             <name>prettier</name>
-            <value>2.0.5</value>
+            <value>2.8.8</value>
           </property>
           <property>
             <name>@prettier/plugin-php</name> <!-- this could not be written in the simpler to write 'devDependencies' element. -->
-            <value>0.14.2</value>
+            <value>0.19.6</value>
           </property>
         </devDependencyProperties>
         <!-- Specify config file and/or inline config, the inline always trumps file -->
         <configFile>${project.basedir}/path/to/configfile</configFile>
         <config>
             <useTabs>true</useTabs>
+            <!-- Prettier v3 Only - Comma Delimited -->
+            <plugins>@prettier/plugin-php</plugins>
         </config>
       </prettier>
     </format>
@@ -775,12 +1122,13 @@ Since spotless uses the actual npm prettier package behind the scenes, it is pos
 
       <prettier>
         <devDependencies>
-            <prettier>2.0.5</prettier>
-            <prettier-plugin-java>0.8.0</prettier-plugin-java>
+            <prettier>2.8.8</prettier>
+            <prettier-plugin-java>2.2.0</prettier-plugin-java>
         </devDependencies>
         <config>
             <tabWidth>4</tabWidth>
             <parser>java</parser>
+            <plugins>prettier-plugin-java</plugins><!-- this is only for prettier 3.0.0 and above: an additional 'plugins' config element is required -->
         </config>
       </prettier>
     </format>
@@ -796,16 +1144,17 @@ Since spotless uses the actual npm prettier package behind the scenes, it is pos
         <devDependencyProperties>
           <property>
             <name>prettier</name>
-            <value>2.0.5</value>
+            <value>2.8.8</value>
           </property>
           <property>
             <name>@prettier/plugin-php</name>
-            <value>0.14.2</value>
+            <value>0.19.6</value>
           </property>
         </devDependencyProperties>
         <config>
             <tabWidth>3</tabWidth>
             <parser>php</parser>
+            <plugins>@prettier/plugin-php</plugins><!-- this is only for prettier 3.0.0 and above: an additional 'plugins' config element is required -->
         </config>
       </prettier>
     </format>
@@ -817,28 +1166,49 @@ Since spotless uses the actual npm prettier package behind the scenes, it is pos
 ### npm detection
 
 Prettier is based on NodeJS, so to use it, a working NodeJS installation (especially npm) is required on the host running spotless.
-Spotless will try to auto-discover an npm installation. If that is not working for you, it is possible to directly configure the npm binary to use.
+Spotless will try to auto-discover an npm installation. If that is not working for you, it is possible to directly configure the npm
+and/or node binary to use.
 
 ```xml
 <prettier>
   <npmExecutable>/usr/bin/npm</npmExecutable>
+  <nodeExecutable>/usr/bin/node</nodeExecutable>
 ```
+
+If you provide both `npmExecutable` and `nodeExecutable`, spotless will use these paths. If you specify only one of the
+two, spotless will assume the other one is in the same directory.
 
 ### `.npmrc` detection
 
 Spotless picks up npm configuration stored in a `.npmrc` file either in the project directory or in your user home.
-Alternatively you can supply spotless with a location of the `.npmrc` file to use. (This can be combined with `npmExecutable`, of course.)
+Alternatively you can supply spotless with a location of the `.npmrc` file to use. (This can be combined with
+`npmExecutable` and `nodeExecutable`, of course.)
 
 ```xml
 <prettier>
   <npmrc>/usr/local/shared/.npmrc</npmrc>
 ```
 
+### Caching results of `npm install`
+
+Spotless uses `npm` behind the scenes to install `prettier`. This can be a slow process, especially if you are using a slow internet connection or
+if you need large plugins. You can instruct spotless to cache the results of the `npm install` calls, so that for the next installation,
+it will not need to download the packages again, but instead reuse the cached version.
+
+```xml
+<prettier>
+  <npmInstallCache>true</npmInstallCache> <!-- will use the default cache directory (the `target`-directory) -->
+  <npmInstallCache>/usr/local/shared/.spotless-npm-install-cache</npmInstallCache> <!-- will use the specified directory (creating it if not existing) -->
+```
+
+Depending on your filesystem and the location of the cache directory, spotless will use hardlinks when caching the npm packages. If that is not
+possible, it will fall back to copying the files.
+
 <a name="applying-eclipse-wtp-to-css--html--etc"></a>
 
 ## Eclipse web tools platform
 
-[changelog](https://www.eclipse.org/webtools/). [compatible versions](https://github.com/diffplug/spotless/tree/main/lib-extra/src/main/resources/com/diffplug/spotless/extra/eclipse_wtp_formatters).
+[changelog](https://www.eclipse.org/webtools/). [compatible versions](https://github.com/diffplug/spotless/tree/main/lib-extra/src/main/resources/com/diffplug/spotless/extra/eclipse_wtp_formatter).
 
 ```xml
 <configuration>
@@ -855,7 +1225,7 @@ Alternatively you can supply spotless with a location of the `.npmrc` file to us
           <file>${project.basedir}/xml.prefs</file>
           <file>${project.basedir}/additional.properties</file>
         </files>
-        <version>4.13.0</version> <!-- optional -->
+        <version>4.21.0</version> <!-- optional version of Eclipse Formatter -->
       </eclipseWtp>
     </format>
   </formats>
@@ -888,6 +1258,159 @@ to true.
 
 <a name="format"></a>
 <a name="custom rules"></a>
+
+## Biome
+
+[homepage](https://biomejs.dev/). [changelog](https://github.com/biomejs/biome/blob/main/CHANGELOG.md). Biome is
+a formatter that for the frontend written in Rust, which has a native binary, does not require Node.js and as such,
+is pretty fast. It can currently format JavaScript, TypeScript, JSX, and JSON, and may support
+[more frontend languages](https://biomejs.dev/internals/language-support/) such as CSS in the future.
+
+Note: Biome [was formerly called Rome](https://biomejs.dev/blog/annoucing-biome/). Configurations with
+the old `<rome>` tag and `rome(...)` function are still supported for the time being. This will be removed
+in a future version, you should migrate to the new `<biome>` tag or `biome(...)` function. The configuration
+remains the same, you only need to update the version. If you are using a custom `rome.json` configuration file,
+you need to rename it to `biome.json`.
+
+You can use Biome in any language-specific format for supported languages, but
+usually you will be creating a generic format.
+
+```xml
+<configuration>
+  <formats>
+    <format>
+      <includes>
+        <include>src/**/typescript/**/*.ts</include>
+      </includes>
+
+      <biome>
+        <!-- Download Biome from the network if not already downloaded, see below for more info  -->
+        <version>1.2.0</version>
+
+        <!-- (optional) Path to the directory with the biome.json conig file -->
+        <configPath>${project.basedir}/path/to/config/dir</configPath>
+
+        <!-- (optional) Biome will auto detect the language based on the file extension. -->
+        <!-- See below for possible values. -->
+        <language>ts</language>
+      </prettier>
+    </biome>
+
+  </formats>
+</configuration>
+```
+
+**Limitations:**
+- The auto-discovery of config files (up the file tree) will not work when using
+  Biome within spotless.
+
+To apply Biome to more kinds of files with a different configuration, just add
+more formats:
+
+```xml
+<configuration>
+  <formats>
+    <format><includes>src/**/*.ts</includes><biome/></format>
+    <format><includes>src/**/*.js</includes><biome/></format>
+</configuration>
+```
+
+### Biome binary
+
+To format with Biome, spotless needs to find the Biome binary. By default,
+spotless downloads the binary for the given version from the network. This
+should be fine in most cases, but may not work e.g. when there is not connection
+to the internet.
+
+To download the Biome binary from the network, just specify a version:
+
+```xml
+<biome>
+  <version>1.2.0</version>
+</biome>
+```
+
+Spotless uses a default version when you do not specify a version, but this
+may change at any time, so we recommend that you always set the Biome version
+you want to use. Optionally, you can also specify a directory for the downloaded
+Biome binaries (defaults to `~/.m2/repository/com/diffplug/spotless/spotless-data/biome`):
+
+```xml
+<biome>
+  <version>1.2.0</version>
+  <!-- Relative paths are resolved against the project's base directory -->
+  <downloadDir>${user.home}/biome</downloadDir>
+</biome>
+```
+
+To use a fixed binary, omit the `version` and specify a `pathToExe`:
+
+```xml
+<biome>
+  <pathToExe>${project.basedir}/bin/biome</pathToExe>
+</biome>
+```
+
+Absolute paths are used as-is. Relative paths are resolved against the project's
+base directory. To use a pre-installed Biome binary on the user's path, specify
+just a name without any slashes / backslashes:
+
+
+```xml
+<biome>
+  <!-- Uses the "biome" command, which must be on the user's path. -->
+  <pathToExe>biome</pathToExe>
+</biome>
+```
+
+### Biome configuration file
+
+Biome is a biased formatter and linter without many options, but there are a few
+basic options. Biome uses a file named [biome.json](https://biomejs.dev/reference/configuration/)
+for its configuration. When none is specified, the default configuration from
+Biome is used. To use a custom configuration:
+
+```xml
+<biome>
+  <!-- Must point to the directory with the "biome.json" config file -->
+  <!-- Relative paths are resolved against the project's base directory -->
+  <configPath>${project.basedir}</configPath>
+</biome>
+```
+
+### Biome input language
+
+By default, Biome detects the language / syntax of the files to format
+automatically from the file extension. This may fail if your source code files
+have unusual extensions for some reason. If you are using the generic format,
+you can force a certain language like this:
+
+```xml
+<configuration>
+  <formats>
+    <format>
+      <includes>
+        <include>src/**/typescript/**/*.mjson</include>
+      </includes>
+
+      <biome>
+        <version>1.2.0</version>
+        <language>json</language>
+      </biome>
+    </format>
+  </formats>
+</configuration>
+```
+
+The following languages are currently recognized:
+
+* `js` -- JavaScript
+* `jsx` -- JavaScript + JSX (React)
+* `js?` -- JavaScript, with or without JSX, depending on the file extension
+* `ts` -- TypeScript
+* `tsx` -- TypeScript + JSX (React)
+* `ts?` -- TypeScript, with or without JSX, depending on the file extension
+* `json` -- JSON
 
 ## Generic steps
 
@@ -956,13 +1479,19 @@ Once a file's license header has a valid year, whether it is a year (`2020`) or 
 
 If your project has not been rigorous with copyright headers, and you'd like to use git history to repair this retroactively, you can do so with `-DspotlessSetLicenseHeaderYearsFromGitHistory=true`.  When run in this mode, Spotless will do an expensive search through git history for each file, and set the copyright header based on the oldest and youngest commits for that file.  This is intended to be a one-off sort of thing.
 
+### Files with fixed header lines
+
+Some files have fixed header lines (e.g. `<?xml version="1.0" ...` in XMLs, or `#!/bin/bash` in bash scripts). Comments cannot precede these, so the license header has to come after them, too.
+
+To define what lines to skip at the beginning of such files, fill the `skipLinesMatching` option with a regular expression that matches them (e.g. `<skipLinesMatching>^#!.+?$</skipLinesMatching>` to skip shebangs).
+
 <a name="invisible"></a>
 
 <a name="ratchet"></a>
 
 ## Incremental up-to-date checking and formatting
 
-**This feature is turned off by default.**
+**This feature is enabled by default starting from version 2.35.0.**
 
 Execution of `spotless:check` and `spotless:apply` for large projects can take time.
 By default, Spotless Maven plugin needs to read and format each source file.
@@ -1028,6 +1557,13 @@ You can explicitly disable ratchet functionality by providing the value 'NONE':
 ```
 This is useful for disabling the ratchet functionality in child projects where the parent defines a ratchetFrom value.
 
+### Using `ratchetFrom` on CI systems
+
+Many popular CI systems (GitHub, GitLab, BitBucket, and Travis) use a "shallow clone". This means that `<ratchetFrom>origin/main</ratchetFrom>` will fail with `No such reference`. You can fix this by:
+
+- calling `git fetch origin main` before you call Spotless
+- disabling the shallow clone [like so](https://github.com/diffplug/spotless/issues/710)
+
 ## `spotless:off` and `spotless:on`
 
 Sometimes there is a chunk of code  which you have carefully handcrafted, and you would like to exclude just this one little part from getting clobbered by the autoformat. Some formatters have a way to do this, many don't, but who cares. If you setup your spotless like this:
@@ -1055,7 +1591,7 @@ Spotless uses UTF-8 by default, but you can use [any encoding which Java support
 </configuration>
 ```
 
-Line endings can also be set globally or per-format using the `lineEndings` property.  Spotless supports four line ending modes: `UNIX`, `WINDOWS`, `MAC_CLASSIC`, `PLATFORM_NATIVE`, and `GIT_ATTRIBUTES`.  The default value is `GIT_ATTRIBUTES`, and *we highly recommend that you* ***do not change*** *this value*.  Git has opinions about line endings, and if Spotless and git disagree, then you're going to have a bad time.
+Line endings can also be set globally or per-format using the `lineEndings` property.  Spotless supports four line ending modes: `UNIX`, `WINDOWS`, `MAC_CLASSIC`, `PLATFORM_NATIVE`, `GIT_ATTRIBUTES`, and `GIT_ATTRIBUTES_FAST_ALLSAME`.  The default value is `GIT_ATTRIBUTES_FAST_ALLSAME`, and *we highly recommend that you* ***do not change*** *this value*.  Git has opinions about line endings, and if Spotless and git disagree, then you're going to have a bad time. `FAST_ALLSAME` just means that Spotless can assume that every file being formatted has the same line endings ([more info](https://github.com/diffplug/spotless/pull/1838)).
 
 You can easily set the line endings of different files using [a `.gitattributes` file](https://help.github.com/articles/dealing-with-line-endings/).  Here's an example `.gitattributes` which sets all files to unix newlines: `* text eol=lf`.
 

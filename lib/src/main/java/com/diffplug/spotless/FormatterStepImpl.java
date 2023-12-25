@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * Standard implementation of FormatExtension which cleanly enforces
  * separation of serializable configuration and a pure format function.
- *
+ * <p>
  * Not an inner-class of FormatterStep so that it can stay entirely private
  * from the API.
  */
@@ -116,11 +116,8 @@ abstract class FormatterStepImpl<State extends Serializable> extends Strict<Stat
 		}
 	}
 
-	/** A dummy SENTINEL file. */
-	static final File SENTINEL = new File("");
-
 	static void checkNotSentinel(File file) {
-		if (file == SENTINEL) {
+		if (file == Formatter.NO_FILE_SENTINEL) {
 			throw new IllegalArgumentException("This step requires the underlying file. If this is a test, use StepHarnessWithFile");
 		}
 	}

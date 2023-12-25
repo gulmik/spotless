@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.diffplug.spotless.maven.generic;
 import java.util.Collections;
 import java.util.Set;
 
+import org.apache.maven.project.MavenProject;
+
 import com.diffplug.spotless.maven.FormatterFactory;
 
 /**
@@ -29,7 +31,7 @@ import com.diffplug.spotless.maven.FormatterFactory;
 public class Format extends FormatterFactory {
 
 	@Override
-	public Set<String> defaultIncludes() {
+	public Set<String> defaultIncludes(MavenProject project) {
 		return Collections.emptySet();
 	}
 
@@ -37,5 +39,23 @@ public class Format extends FormatterFactory {
 	public String licenseHeaderDelimiter() {
 		// do not specify a default delimiter
 		return null;
+	}
+
+	/**
+	 * Adds a step to this format that format code with the Biome formatter.
+	 * @param biome Biome configuration to use.
+	 */
+	public void addBiome(Biome biome) {
+		addStepFactory(biome);
+	}
+
+	/**
+	 * Adds a step to this format that format code with the Rome formatter.
+	 * @param rome Rome configuration to use.
+	 * @deprecated Rome has transitioned to Biome. Use {@link #addBiome(Biome)}.
+	 */
+	@Deprecated
+	public void addRome(Rome rome) {
+		addStepFactory(rome);
 	}
 }

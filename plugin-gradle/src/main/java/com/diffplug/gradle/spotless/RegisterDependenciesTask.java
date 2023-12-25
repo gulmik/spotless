@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.build.event.BuildEventsListenerRegistry;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.diffplug.common.base.Preconditions;
 import com.diffplug.common.io.Files;
@@ -38,7 +39,7 @@ import com.diffplug.spotless.FormatterStep;
 
 /**
  * NOT AN END-USER TASK, DO NOT USE FOR ANYTHING!
- *
+ * <p>
  * - When a user asks for a formatter, we need to download the jars for that formatter
  * - Gradle wants us to resolve all our dependencies in the root project - no new dependencies in subprojects
  * - So, whenever a SpotlessTask in a subproject gets configured, we call {@link #hookSubprojectTask(SpotlessTask)},
@@ -46,6 +47,7 @@ import com.diffplug.spotless.FormatterStep;
  * - When this "registerDependencies" task does its up-to-date check, it queries the task execution graph to see which
  *   SpotlessTasks are at risk of being executed, and causes them all to be evaluated safely in the root buildscript.
  */
+@DisableCachingByDefault(because = "This task coordinates the setup and execution of other tasks, and should not be cached")
 public abstract class RegisterDependenciesTask extends DefaultTask {
 	static final String TASK_NAME = "spotlessInternalRegisterDependencies";
 
@@ -66,7 +68,7 @@ public abstract class RegisterDependenciesTask extends DefaultTask {
 		taskService = buildServices.registerIfAbsent("SpotlessTaskService" + compositeBuildSuffix, SpotlessTaskService.class, spec -> {});
 		usesService(taskService);
 		getBuildEventsListenerRegistry().onTaskCompletion(taskService);
-		unitOutput = new File(getProject().getBuildDir(), "tmp/spotless-register-dependencies");
+		unitOutput = new File(getProject().getLayout().getBuildDirectory().getAsFile().get(), "tmp/spotless-register-dependencies");
 	}
 
 	List<FormatterStep> steps = new ArrayList<>();

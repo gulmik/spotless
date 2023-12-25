@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 DiffPlug
+ * Copyright 2020-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.IOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 public class ConfigurationCacheTest extends GradleIntegrationHarness {
 	@Override
@@ -39,7 +41,7 @@ public class ConfigurationCacheTest extends GradleIntegrationHarness {
 				"apply plugin: 'java'",
 				"spotless {",
 				"    java {",
-				"        googleJavaFormat('1.2')",
+				"        googleJavaFormat()",
 				"    }",
 				"}");
 		gradleRunner().withArguments("help").build();
@@ -55,7 +57,7 @@ public class ConfigurationCacheTest extends GradleIntegrationHarness {
 				"apply plugin: 'java'",
 				"spotless {",
 				"    java {",
-				"        googleJavaFormat('1.2')",
+				"        googleJavaFormat()",
 				"    }",
 				"}",
 				"tasks.named('spotlessJavaApply').get()");
@@ -63,6 +65,7 @@ public class ConfigurationCacheTest extends GradleIntegrationHarness {
 	}
 
 	@Test
+	@EnabledForJreRange(max = JRE.JAVA_20)
 	public void jvmLocalCache() throws IOException {
 		setFile("build.gradle").toLines(
 				"plugins {",
@@ -72,7 +75,7 @@ public class ConfigurationCacheTest extends GradleIntegrationHarness {
 				"spotless {",
 				"    java {",
 				"        target file('test.java')",
-				"        googleJavaFormat('1.2')",
+				"        googleJavaFormat()",
 				"    }",
 				"}");
 
@@ -91,6 +94,10 @@ public class ConfigurationCacheTest extends GradleIntegrationHarness {
 		gradleRunner().withArguments("spotlessApply").build();
 		assertFile("test.java").sameAsResource("java/googlejavaformat/JavaCodeFormatted.test");
 
+		// the withDebug forces it to start a new deamon, but only in Gradle 8.3 and older
+		// starting with Gradle 8.5 this doesn't work anymore
+		// and we need Gradle 8.5 for Java 21
+		// so we can't test this on Java 21 for now
 		BuildResult failure = gradleRunner().withDebug(true).withArguments("spotlessApply", "--stacktrace").buildAndFail();
 		failure.getOutput().contains("Spotless daemon-local cache is stale. Regenerate the cache with\n" +
 				"  rm -rf .gradle/configuration-cache\n" +

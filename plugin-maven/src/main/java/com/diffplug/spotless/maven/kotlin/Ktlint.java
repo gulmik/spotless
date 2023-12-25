@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 DiffPlug
+ * Copyright 2016-2023 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,46 @@ package com.diffplug.spotless.maven.kotlin;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.diffplug.spotless.FileSignature;
 import com.diffplug.spotless.FormatterStep;
+import com.diffplug.spotless.ThrowingEx;
 import com.diffplug.spotless.kotlin.KtLintStep;
 import com.diffplug.spotless.maven.FormatterStepConfig;
 import com.diffplug.spotless.maven.FormatterStepFactory;
 
 public class Ktlint implements FormatterStepFactory {
-
 	@Parameter
 	private String version;
-
+	@Parameter
+	private String editorConfigPath;
 	@Parameter
 	private Map<String, Object> editorConfigOverride;
+	@Parameter
+	private List<String> customRuleSets;
 
 	@Override
-	public FormatterStep newFormatterStep(FormatterStepConfig config) {
+	public FormatterStep newFormatterStep(final FormatterStepConfig stepConfig) {
 		String ktlintVersion = version != null ? version : KtLintStep.defaultVersion();
-
+		FileSignature configPath = null;
+		if (editorConfigPath != null) {
+			configPath = ThrowingEx.get(() -> FileSignature.signAsList(stepConfig.getFileLocator().locateFile(editorConfigPath)));
+		}
 		if (editorConfigOverride == null) {
 			editorConfigOverride = new HashMap<>();
 		}
-
-		return KtLintStep.create(ktlintVersion, config.getProvisioner(), false, Collections.emptyMap(), editorConfigOverride);
+		if (customRuleSets == null) {
+			customRuleSets = Collections.emptyList();
+		}
+		return KtLintStep.create(
+				ktlintVersion,
+				stepConfig.getProvisioner(),
+				configPath,
+				editorConfigOverride,
+				customRuleSets);
 	}
 }
