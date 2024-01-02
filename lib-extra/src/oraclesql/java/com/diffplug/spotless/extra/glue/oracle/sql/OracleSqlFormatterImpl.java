@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 DiffPlug
+ * Copyright 2022-2024 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.diffplug.spotless.extra.oracle.sql;
+package com.diffplug.spotless.extra.glue.oracle.sql;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -51,7 +51,7 @@ public class OracleSqlFormatterImpl {
 		final Parsed parsed = new Parsed(content, tokens, SqlEarley.getInstance(), new String[]{"sql_statements"});
 		final String message = Optional.ofNullable(parsed.getSyntaxError())
 				.filter(error -> error.getMessage() != null)
-				.map(error -> new StringBuilder("Invalid sql syntax for formatting:\n").append(error).toString())
+				.map(error -> "Invalid sql syntax for formatting:\n" + error)
 				.orElse(null);
 		if (message != null) {
 			throw new IllegalArgumentException(message);
@@ -122,7 +122,7 @@ public class OracleSqlFormatterImpl {
 		private static void configureFormatFromFile(Format formatter, String xmlConfig) {
 			try {
 				URL url = Paths.get(xmlConfig).toUri().toURL();
-				Persist2XML.read(url).forEach(formatter.options::put);
+				formatter.options.putAll(Persist2XML.read(url));
 			} catch (Exception ex) {
 				throw new IllegalArgumentException("Failed to read configuration file: " + xmlConfig, ex);
 			}

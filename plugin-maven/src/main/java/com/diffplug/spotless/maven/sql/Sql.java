@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 DiffPlug
+ * Copyright 2020-2024 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,5 +40,9 @@ public class Sql extends FormatterFactory {
 
 	public void addDbeaver(DBeaver dbeaver) {
 		addStepFactory(dbeaver);
+	}
+
+	public void addOracleSql(OracleSql oracleSql) {
+		addStepFactory(oracleSql);
 	}
 }

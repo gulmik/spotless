@@ -1,6 +1,9 @@
+import java.nio.file.Paths
+
 plugins {
 	id 'java-library'
 	id 'dev.equo.p2deps'
+	id 'de.undercouch.download' version '5.5.0'
 }
 ext.artifactId = project.artifactIdLibExtra
 version = rootProject.spotlessChangelog.versionNext
@@ -59,8 +62,9 @@ for (needsP2 in NEEDS_P2_DEPS) {
 
 def jar = tasks.named('jar', Jar) {
 	for (needsP2 in NEEDS_P2_DEPS) {
-		from sourceSets.named(needsP2).map { it.output.classesDirs }
+		from sourceSets.named(needsP2).map {it.output.classesDirs }
 	}
+	from sourceSets.named('oraclesql').map {it.output.classesDirs }
 }
 
 tasks.withType(Test).configureEach {
@@ -88,6 +92,80 @@ p2deps {
 		p2repo 'https://download.eclipse.org/eclipse/updates/4.26/'
 		install 'org.eclipse.jdt.core'
 	}
+}
+
+String VER_ORACLE_SQLCL = '23.3.0.270.1251'
+tasks.register('fetchSqlcl') {
+	description 'Download SQLcl.'
+	outputs.cacheIf { true }
+	outputs.file(layout.buildDirectory.file('sqlcl.zip'))
+	doLast {
+		println 'Download SQLcl.'
+		download.run {
+			src "https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-${VER_ORACLE_SQLCL}.zip"
+			dest layout.buildDirectory.file('sqlcl.zip')
+		}
+	}
+}
+
+tasks.register('unpackDbtoolsCommon') {
+	description 'Extract dbtools-common from sqlcl archive.'
+	dependsOn tasks.fetchSqlcl
+	doLast {
+		println 'Extract dbtools-common from sqlcl archive.'
+		copy {
+			from(zipTree(fetchSqlcl.outputs.files.singleFile)) {
+				include '**/dbtools-common.jar'
+				includeEmptyDirs = false
+			}
+			into layout.buildDirectory
+		}
+		copy {
+			from zipTree(layout.buildDirectory.file('sqlcl/lib/dbtools-common.jar')).matching {
+				include '**/pom.xml', '**/pom.properties'
+			}.files
+			into layout.buildDirectory.dir('sqlcl/lib')
+		}
+
+		Properties props = file(layout.buildDirectory.dir('sqlcl/lib/pom.properties')).withReader {
+			def props = new Properties()
+			props.load(it)
+			return props
+		}
+
+		String groupId = props.get('groupId')
+		String artifactId = props.get('artifactId')
+		String version = props.get('version')
+		copy {
+			from layout.buildDirectory.dir('sqlcl/lib')
+			include 'dbtools-common.jar', 'pom.xml'
+			into Paths.get(repositories.mavenLocal().getUrl())
+					.resolve(groupId.replace('.', File.separator))
+					.resolve(artifactId)
+					.resolve(version)
+			rename { String fileName ->
+				String newName = artifactId + '-' + version
+				if (fileName.endsWith('.xml')) {
+					return newName + '.pom'
+				}
+				return newName + '.jar'
+			}
+		}
+	}
+	doNotTrackState("Don't track state")
+}
+
+sourceSets.register('oraclesql') {
+	java {}
+}
+dependencies {
+	oraclesqlCompileOnly files(layout.buildDirectory.dir('sqlcl/lib/dbtools-common.jar'))
+	implementation sourceSets.named('oraclesql').get().output
+	testRuntimeOnly files(layout.buildDirectory.dir('sqlcl/lib/dbtools-common.jar'))
+}
+
+tasks.compileOraclesqlJava.configure {
+	dependsOn 'unpackDbtoolsCommon'
 }
 
 // we'll hold the core lib to a high standard

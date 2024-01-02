@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 DiffPlug
+ * Copyright 2022-2024 DiffPlug
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,9 @@ import com.diffplug.spotless.ThrowingEx;
 
 public final class OracleSqlFormatterStep {
 
-	private static final String FORMATTER_CLASS = "com.diffplug.spotless.extra.oracle.sql.OracleSqlFormatterImpl";
+	private static final String FORMATTER_CLASS = "com.diffplug.spotless.extra.glue.oracle.sql.OracleSqlFormatterImpl";
 	private static final String FORMATTER_METHOD = "format";
-	private static final String FORMATTER_COORDINATE = "com.diffplug.spotless:spotless-oracle-sql:0.1.0-SNAPSHOT";
-	private static final String DBTOOLS_COORDINATE = "oracle.dbtools:dbtools-common:22.3.0.270.1254";
+	private static final String DBTOOLS_COORDINATE = "oracle.dbtools:dbtools-common:23.3.0.270.1251";
 
 	private OracleSqlFormatterStep() {}
 
@@ -68,11 +67,11 @@ public final class OracleSqlFormatterStep {
 		Config(Provisioner provisioner, ThrowingEx.Function<State, FormatterFunc> stateToFormatter) {
 			this.provisioner = Objects.requireNonNull(provisioner, "provisioner");
 			this.stateToFormatter = Objects.requireNonNull(stateToFormatter, "stateToFormatter");
-			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(FORMATTER_COORDINATE, DBTOOLS_COORDINATE));
+			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(DBTOOLS_COORDINATE));
 		}
 
 		public void coordinate(String value) {
-			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(FORMATTER_COORDINATE, value));
+			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(value));
 		}
 
 		public void settingsFile(File value) {
@@ -121,7 +120,7 @@ public final class OracleSqlFormatterStep {
 
 		Class<?> loadClass(String name) {
 			try {
-				return jarState.getClassLoader(this).loadClass(name);
+				return jarState.getClassLoader().loadClass(name);
 			} catch (ClassNotFoundException e) {
 				throw Errors.asRuntime(e);
 			}
