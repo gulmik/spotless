@@ -49,6 +49,15 @@ class SqlTest extends MavenIntegrationHarness {
 	}
 
 	@Test
+	void testOracleSqlWithEmbeddedConfig() throws Exception {
+		writePomWithSqlSteps("<oracleSql><useEmbeddedConfig>true</useEmbeddedConfig></oracleSql>");
+
+		setFile("src/main/resources/aFolder/test.sql").toResource("sql/oracle/sql.test");
+		mavenRunner().withArguments("spotless:apply", "-X").runNoError();
+		assertFile("src/main/resources/aFolder/test.sql").sameAsResource("sql/oracle/sql-embedded.formatted");
+	}
+
+	@Test
 	void testOracleSqlWithAlternativeConfig() throws Exception {
 		writePomWithSqlSteps("<oracleSql><settingsFile>settings.xml</settingsFile><arboriFile>local.arbori</arboriFile></oracleSql>");
 		setFile("settings.xml").toResource("sql/oracle/trivadis_advanced_format.xml");

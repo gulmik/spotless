@@ -62,9 +62,9 @@ for (needsP2 in NEEDS_P2_DEPS) {
 
 def jar = tasks.named('jar', Jar) {
 	for (needsP2 in NEEDS_P2_DEPS) {
-		from sourceSets.named(needsP2).map {it.output.classesDirs }
+		from sourceSets.named(needsP2).map { it.output.classesDirs }
 	}
-	from sourceSets.named('oraclesql').map {it.output.classesDirs }
+	from sourceSets.named('oraclesql').map { it.output.classesDirs }
 }
 
 tasks.withType(Test).configureEach {
@@ -156,12 +156,12 @@ tasks.register('unpackDbtoolsCommon') {
 }
 
 sourceSets.register('oraclesql') {
+	compileClasspath += sourceSets.main.output
+	runtimeClasspath += sourceSets.main.output
 	java {}
 }
 dependencies {
 	oraclesqlCompileOnly files(layout.buildDirectory.dir('sqlcl/lib/dbtools-common.jar'))
-	implementation sourceSets.named('oraclesql').get().output
-	testRuntimeOnly files(layout.buildDirectory.dir('sqlcl/lib/dbtools-common.jar'))
 }
 
 tasks.compileOraclesqlJava.configure {

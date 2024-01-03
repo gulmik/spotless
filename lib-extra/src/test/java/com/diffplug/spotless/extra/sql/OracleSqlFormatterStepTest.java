@@ -15,7 +15,9 @@
  */
 package com.diffplug.spotless.extra.sql;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 
@@ -36,8 +38,13 @@ class OracleSqlFormatterStepTest extends ResourceHarness {
 	@Test
 	void defaultSettings() throws Exception {
 		FormatterStep step = newConfig().createStep();
-		String output = format(step, "select sysdate from dual;");
-		assertThat(output).isEqualTo("SELECT\n    sysdate\nFROM\n    dual;");
+		String formattedSql = getTestResource("sql/oracle/sql.formatted");
+		String unformattedSql = getTestResource("sql/oracle/sql.test");
+		assertEquals(formattedSql, format(step, unformattedSql));
+
+		String formattedProc = getTestResource("sql/oracle/procedure.formatted");
+		String unformattedProc = getTestResource("sql/oracle/procedure.test");
+		assertEquals(formattedProc, format(step, unformattedProc));
 	}
 
 	@Test
@@ -46,8 +53,27 @@ class OracleSqlFormatterStepTest extends ResourceHarness {
 		config.settingsFile(createTestFile("sql/oracle/trivadis_advanced_format.xml"));
 		config.arboriFile(createTestFile("sql/oracle/trivadis_custom_format.arbori"));
 		FormatterStep step = config.createStep();
-		String output = format(step, "SELECT\n    sysdate\nFROM\n    dual;");
-		assertThat(output).isEqualTo("select sysdate\n  from dual;");
+		String formatted = getTestResource("sql/oracle/procedure-trivadis.formatted");
+		String unformatted = getTestResource("sql/oracle/procedure.test");
+		assertEquals(formatted, format(step, unformatted));
+	}
+
+	@Test
+	void embeddedSettings() throws Exception {
+		OracleSqlFormatterStep.Config config = newConfig();
+		config.useEmbeddedConfig(true);
+		FormatterStep step = config.createStep();
+		String formatted = getTestResource("sql/oracle/procedure-embedded.formatted");
+		String unformatted = getTestResource("sql/oracle/procedure.test");
+		assertEquals(formatted, format(step, unformatted));
+	}
+
+	@Test
+	void invalidSyntax() throws Exception {
+		FormatterStep step = newConfig().createStep();
+		String unformatted = getTestResource("sql/oracle/invalid.test");
+		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> format(step, unformatted));
+		assertTrue(thrown.getMessage().startsWith("Invalid sql syntax for formatting"));
 	}
 
 	@Test

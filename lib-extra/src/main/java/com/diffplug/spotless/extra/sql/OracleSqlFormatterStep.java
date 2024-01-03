@@ -19,12 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 import com.diffplug.common.base.Errors;
 import com.diffplug.spotless.FileSignature;
@@ -63,15 +63,16 @@ public final class OracleSqlFormatterStep {
 		private Collection<String> dependencies;
 		private File formatterXml;
 		private File formatterArbori;
+		private boolean useEmbeddedConfig;
 
 		Config(Provisioner provisioner, ThrowingEx.Function<State, FormatterFunc> stateToFormatter) {
 			this.provisioner = Objects.requireNonNull(provisioner, "provisioner");
 			this.stateToFormatter = Objects.requireNonNull(stateToFormatter, "stateToFormatter");
-			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(DBTOOLS_COORDINATE));
+			this.dependencies = Set.of(DBTOOLS_COORDINATE);
 		}
 
 		public void coordinate(String value) {
-			this.dependencies = Collections.unmodifiableCollection(Arrays.asList(value));
+			this.dependencies = Set.of(value);
 		}
 
 		public void settingsFile(File value) {
@@ -82,12 +83,16 @@ public final class OracleSqlFormatterStep {
 			this.formatterArbori = value;
 		}
 
+		public void useEmbeddedConfig(boolean value) {
+			this.useEmbeddedConfig = value;
+		}
+
 		public FormatterStep createStep() {
 			return FormatterStep.createLazy(name(), this::get, stateToFormatter);
 		}
 
 		State get() throws IOException {
-			return new State(formatterXml, formatterArbori, provisioner, dependencies);
+			return new State(formatterXml, formatterArbori, useEmbeddedConfig, provisioner, dependencies);
 		}
 	}
 
@@ -95,11 +100,13 @@ public final class OracleSqlFormatterStep {
 		private static final long serialVersionUID = 1L;
 		private final FileSignature formatterXmlFile;
 		private final FileSignature formatterArboriFile;
+		private final boolean useEmbeddedConfig;
 		private final JarState jarState;
 
-		State(File formatterXml, File formatterArbori, Provisioner provisioner, Collection<String> dependencies) throws IOException {
+		State(File formatterXml, File formatterArbori, boolean useEmbeddedConfig, Provisioner provisioner, Collection<String> dependencies) throws IOException {
 			this.formatterXmlFile = toFileSignature(formatterXml);
 			this.formatterArboriFile = toFileSignature(formatterArbori);
+			this.useEmbeddedConfig = useEmbeddedConfig;
 			this.jarState = JarState.withoutTransitives(dependencies, provisioner);
 		}
 
@@ -109,6 +116,9 @@ public final class OracleSqlFormatterStep {
 
 		Properties getPreferences() {
 			Properties properties = new Properties();
+			if (useEmbeddedConfig) {
+				properties.setProperty("xml", "embedded");
+			}
 			if (!formatterXmlFile.files().isEmpty()) {
 				properties.setProperty("xml", formatterXmlFile.getOnlyFile().getAbsolutePath());
 			}

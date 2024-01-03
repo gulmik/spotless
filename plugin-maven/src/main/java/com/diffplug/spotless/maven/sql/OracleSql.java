@@ -33,11 +33,17 @@ public class OracleSql implements FormatterStepFactory {
 	private String arboriFile;
 
 	@Parameter
+	private String useEmbeddedConfig;
+
+	@Parameter
 	private String groupArtifactVersion;
 
 	@Override
 	public FormatterStep newFormatterStep(FormatterStepConfig stepConfig) {
 		OracleSqlFormatterStep.Config config = OracleSqlFormatterStep.newConfig(stepConfig.getProvisioner());
+		if (Boolean.parseBoolean(useEmbeddedConfig)) {
+			config.useEmbeddedConfig(true);
+		}
 		if (null != settingsFile) {
 			File file = stepConfig.getFileLocator().locateFile(settingsFile);
 			config.settingsFile(file);
