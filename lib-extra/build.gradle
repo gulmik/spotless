@@ -98,12 +98,12 @@ String VER_ORACLE_SQLCL = '23.3.0.270.1251'
 tasks.register('fetchSqlcl') {
 	description 'Download SQLcl.'
 	outputs.cacheIf { true }
-	outputs.file(layout.buildDirectory.file('sqlcl.zip'))
+	outputs.file(layout.buildDirectory.file('tmp/sqlcl.zip'))
 	doLast {
 		println 'Download SQLcl.'
 		download.run {
 			src "https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-${VER_ORACLE_SQLCL}.zip"
-			dest layout.buildDirectory.file('sqlcl.zip')
+			dest layout.buildDirectory.file('tmp/sqlcl.zip')
 		}
 	}
 }
@@ -118,16 +118,16 @@ tasks.register('unpackDbtoolsCommon') {
 				include '**/dbtools-common.jar'
 				includeEmptyDirs = false
 			}
-			into layout.buildDirectory
+			into layout.buildDirectory.file('tmp')
 		}
 		copy {
-			from zipTree(layout.buildDirectory.file('sqlcl/lib/dbtools-common.jar')).matching {
+			from zipTree(layout.buildDirectory.file('tmp/sqlcl/lib/dbtools-common.jar')).matching {
 				include '**/pom.xml', '**/pom.properties'
 			}.files
-			into layout.buildDirectory.dir('sqlcl/lib')
+			into layout.buildDirectory.dir('tmp/sqlcl/lib')
 		}
 
-		Properties props = file(layout.buildDirectory.dir('sqlcl/lib/pom.properties')).withReader {
+		Properties props = file(layout.buildDirectory.dir('tmp/sqlcl/lib/pom.properties')).withReader {
 			def props = new Properties()
 			props.load(it)
 			return props
@@ -137,7 +137,7 @@ tasks.register('unpackDbtoolsCommon') {
 		String artifactId = props.get('artifactId')
 		String version = props.get('version')
 		copy {
-			from layout.buildDirectory.dir('sqlcl/lib')
+			from layout.buildDirectory.dir('tmp/sqlcl/lib')
 			include 'dbtools-common.jar', 'pom.xml'
 			into Paths.get(repositories.mavenLocal().getUrl())
 					.resolve(groupId.replace('.', File.separator))
@@ -161,7 +161,7 @@ sourceSets.register('oraclesql') {
 	java {}
 }
 dependencies {
-	oraclesqlCompileOnly files(layout.buildDirectory.dir('sqlcl/lib/dbtools-common.jar'))
+	oraclesqlCompileOnly files(layout.buildDirectory.dir('tmp/sqlcl/lib/dbtools-common.jar'))
 }
 
 tasks.compileOraclesqlJava.configure {
